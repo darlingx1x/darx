@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="CV - Suleymanov Bobur">
-    <meta property="og:title" content="CV">
-    <meta property="og:description" content="CV - Suleymanov Bobur">
+    <meta name="description" content="CV of Bobur Suleymanov - AI/Software Engineer">
+    <meta property="og:title" content="CV - Bobur Suleymanov">
+    <meta property="og:description" content="Professional journey of Bobur Suleymanov in AI and Software Engineering">
     <meta property="og:url" content="https://www.darlingx.com/cv">
-    <meta property="og:type" content="website">
+    <meta property="og:type" content="profile">
     
     <link rel="icon" type="image/png" sizes="32x32" href="/icon32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/icon180.png">
-    <title>CV | Suleymanov Bobur</title>
+    <title>CV | Bobur Suleymanov</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,6 +19,88 @@
     
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/constellation.css">
+    
+    <style>
+        .cv-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .cv-section {
+            margin-bottom: 2rem;
+            border-left: 3px solid var(--primary-color);
+            padding-left: 1rem;
+        }
+        
+        .personality-dna {
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--primary-color);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .personality-dna pre {
+            color: var(--primary-color);
+            font-family: 'VT323', monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .skill-bar-container {
+            width: 100%;
+            background-color: rgba(30, 30, 30, 0.9);
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+        
+        .skill-bar {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            position: relative;
+        }
+        
+        .skill-label {
+            flex-grow: 1;
+            padding: 5px 10px;
+            font-family: 'VT323', monospace;
+            color: var(--primary-color);
+            z-index: 2;
+            position: relative;
+        }
+        
+        .skill-bar-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, #FFD700, #FFA500);
+            transition: width 1s ease-in-out;
+            z-index: 1;
+            opacity: 0.7;
+        }
+        
+        @keyframes skillBarReveal {
+            from {
+                width: 0;
+            }
+            to {
+                width: var(--skill-width);
+            }
+        }
+        
+        .skill-bar-fill.animated {
+            animation: skillBarReveal 1.5s ease-in-out forwards;
+        }
+    </style>
 </head>
 <body>
     <div class="constellation-container"></div>
@@ -50,6 +132,71 @@
             
             <div class="about">
                 <h1 class="about-name"><span class="animate_letters">Curriculum Vitae</span></h1>
+                
+                <div class="cv-container">
+                    <div class="personality-dna">
+                        <pre class="dna-code"><code>
+{
+    "professionalProfile": {
+        "name": "Bobur Suleymanov",
+        "title": "AI/Software Engineer",
+        "location": "Tashkent, Uzbekistan",
+        "contact": {
+            "email": "contact@darlingx.com",
+            "github": "darlingx1x"
+        },
+        "focus": [
+            "Machine Learning",
+            "Assistive Technologies",
+            "Full-stack Development"
+        ]
+    }
+}
+                        </code></pre>
+                    </div>
+
+                    <div class="cv-section">
+                        <h2 class="animate_letters">Professional Skills</h2>
+                        
+                        <div class="skill-bar-container">
+                            <div class="skill-bar">
+                                <div class="skill-label">HTML/CSS</div>
+                                <div class="skill-bar-fill" data-width="95%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-bar-container">
+                            <div class="skill-bar">
+                                <div class="skill-label">AI/ML</div>
+                                <div class="skill-bar-fill" data-width="85%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-bar-container">
+                            <div class="skill-bar">
+                                <div class="skill-label">JavaScript/React</div>
+                                <div class="skill-bar-fill" data-width="80%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="skill-bar-container">
+                            <div class="skill-bar">
+                                <div class="skill-label">Backend Development</div>
+                                <div class="skill-bar-fill" data-width="75%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cv-section">
+                        <h2 class="animate_letters">Experience</h2>
+                        <p>Currently exploring innovative projects in AI and Software Engineering, with a focus on developing assistive technologies that enhance human capabilities.</p>
+                    </div>
+
+                    <div class="cv-section">
+                        <h2 class="animate_letters">Education</h2>
+                        <p>Self-directed learning in Computer Science, with deep expertise in Machine Learning and Software Development</p>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -59,5 +206,45 @@
     <script src="/js/constellation.js"></script>
     <script src="/js/page-transition.js"></script>
     <script defer src="/js/main.js"></script>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const personalityDNA = document.querySelector('.personality-dna');
+        const dnaCode = document.querySelector('.dna-code');
+        
+        personalityDNA.addEventListener('click', function() {
+            dnaCode.classList.toggle('dna-hidden');
+            this.style.transform = this.style.transform === 'scale(1.05)' 
+                ? 'scale(1)' 
+                : 'scale(1.05)';
+        });
+
+        personalityDNA.addEventListener('mouseenter', function() {
+            this.style.boxShadow = '0 0 15px rgba(255, 215, 0, 0.5)';
+        });
+
+        personalityDNA.addEventListener('mouseleave', function() {
+            this.style.boxShadow = 'none';
+        });
+
+        // Animate skill bars on scroll
+        const skillBars = document.querySelectorAll('.skill-bar-fill');
+        const options = {
+            threshold: 0.1
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const skillWidth = entry.target.getAttribute('data-width');
+                    entry.target.style.setProperty('--skill-width', skillWidth);
+                    entry.target.classList.add('animated');
+                }
+            });
+        }, options);
+
+        skillBars.forEach(bar => observer.observe(bar));
+    });
+    </script>
 </body>
-</html> 
+</html>
