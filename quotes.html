@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Quotes - Suleymanov Bobur">
+    <meta property="og:title" content="Quotes">
+    <meta property="og:description" content="Quotes - Suleymanov Bobur">
+    <meta property="og:url" content="https://www.darlingx.com/quotes">
+    <meta property="og:type" content="website">
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="icon32.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icon180.png">
+    <title>Quotes | Suleymanov Bobur</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/constellation.css">
+    <link rel="stylesheet" href="css/simple-posts.css">
+    <link rel="stylesheet" href="css/quotes-custom.css">
+    
+    <style>
+        .quotes-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            width: 100%;
+        }
+        
+        .quote-item {
+            margin-bottom: 2.5rem;
+            border-left: 3px solid #FFD700;
+            padding-left: 1.5rem;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .quote-text {
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+        }
+        
+        .quote-author {
+            font-family: 'VT323', monospace;
+            font-size: 1.2rem;
+            color: #FFD700;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <div class="constellation-container"></div>
+    <div class="custom-cursor"></div>
+    <div class="cursor-dot"></div>
+    
+    <main>
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="nav-link">
+                    <span class="animate_letters">[darlingx.com]</span>
+                </a>
+                <a href="cv.html" class="nav-link">
+                    <span class="animate_letters">[cv]</span>
+                </a>
+                <a href="books.html" class="nav-link">
+                    <span class="animate_letters">[books]</span>
+                </a>
+                <a href="posts.html" class="nav-link">
+                    <span class="animate_letters">[posts]</span>
+                </a>
+                <a href="lists.html" class="nav-link">
+                    <span class="animate_letters">[lists]</span>
+                </a>
+                <a href="projects.html" class="nav-link">
+                    <span class="animate_letters">[projects]</span>
+                </a>
+            </nav>
+            
+            <div class="about">
+                <h1 class="about-name"><span class="animate_letters">Quotes</span></h1>
+                
+                <!-- Контейнер для цитат добавляется динамически -->
+                <div class="quotes-container">
+                    <!-- Кнопка случайной цитаты добавляется через JavaScript -->
+                    
+                    <!-- Пример цитат -->
+                    <div class="quote-item">
+                        <p class="quote-text">"— If it entertains you now but will bore you someday, it's a distraction. Keep looking."</p>
+                        <p class="quote-author">— Inkspirify</p>
+                    </div>
+                    
+                    <div class="quote-item">
+                        <p class="quote-text">"— Your 20s are the perfect time to do a few things that are unusual, weird, bold, risky, unexplainable, crazy, unprofitable, and look nothing like "success." For the rest of your life these experiences will serve as your muse."</p>
+                        <p class="quote-author">— Inkspirify</p>
+                    </div>
+                    
+                    <div class="quote-item">
+                        <p class="quote-text">"— I don't have talent, so I just get up earlier."</p>
+                        <p class="quote-author">— Inkspirify</p>
+                    </div>
+                    
+                    <div class="quote-item">
+                        <p class="quote-text">"— You don't need more time because you already have all the time that you will ever get; you need more focus."</p>
+                        <p class="quote-author">— Inkspirify</p>
+                    </div>
+                    
+                    <div class="quote-item">
+                        <p class="quote-text">"— A great way to understand yourself is to seriously reflect on everything you find irritating in others."</p>
+                        <p class="quote-author">— Inkspirify</p>
+                    </div>
+
+                    <div class="quote-item">
+                        <p class="quote-text">"— If you want to impress people nowadays, just say what you're gonna do, then do it."</p>
+                        <p class="quote-author">— Inkspirify</p>
+                    </div>
+                    
+                    <div class="quote-item">
+                        <p class="quote-text">"— A great way to understand yourself is to seriously reflect on everything you find irritating in others."</p>
+                        <p class="quote-author">— Inkspirify</p>
+                    </div>
+
+                    <div class="quote-item">
+                        <p class="quote-text">"— You can quickly and easily be surrounded by people who share the same delusions. That doesn't make them true. Reality isn't a popularity contest. Surrounding yourself with people who tell you you're right doesn't mean you are."</p>
+                        <p class="quote-author">— Inkspirify</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/matrix-animation.js"></script>
+    <script src="js/cursor.js"></script>
+    <script src="js/constellation.js"></script>
+    <script src="js/resource-loader.js"></script>
+    <script src="js/page-transition.js"></script>
+    <script src="js/quotes-custom.js"></script>
+    <script defer src="js/main.js"></script>
+</body>
+</html>
