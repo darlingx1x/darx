@@ -1,96 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="My Time - Suleymanov Bobur">
-  <meta property="og:title" content="My Time">
-  <meta property="og:description" content="My Time - Suleymanov Bobur">
-  <meta property="og:url" content="https://www.darlingx.com/my-time">
-  <meta property="og:type" content="website">
-  
-  <link rel="icon" type="image/png" sizes="32x32" href="icon32.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="icon180.png">
-  <title>My Time | Suleymanov Bobur</title>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/constellation.css">
-  
-  <style>
-    /* Custom styles for My Time page */
-    .time-container {
-      max-width: 800px;
-      margin: 2rem auto;
-      width: 100%;
-      text-align: center;
-    }
+  <head>
+    <!-- Метаданные и подключения ресурсов -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="My Remaining Time - Calculate how much meaningful time you have left" />
+    <meta property="og:title" content="My Time" />
+    <meta property="og:description" content="Life Time Visualizer - Suleymanov Bobur" />
+    <meta property="og:url" content="https://www.darlingx.com/my-time" />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/png" sizes="32x32" href="icon32.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="icon180.png" />
+    <title>My Time | Suleymanov Bobur</title>
     
-    .time-placeholder {
-      font-family: 'VT323', monospace;
-      font-size: 1.5rem;
-      color: rgba(255, 255, 255, 0.9);
-      line-height: 1.4;
-      margin: 3rem 0;
-      padding: 2rem;
-      border: 1px solid var(--primary-color);
-      border-radius: 8px;
-      background-color: rgba(0, 0, 0, 0.5);
-    }
-  </style>
-</head>
-<body>
-  <div class="constellation-container"></div>
-  <div class="custom-cursor"></div>
-  <div class="cursor-dot"></div>
-  
-  <main>
-    <div class="container">
-      <nav class="navbar">
-        <a href="index.html" class="nav-link">
-          <span class="animate_letters">[darlingx.com]</span>
-        </a>
-        <a href="cv.html" class="nav-link">
-          <span class="animate_letters">[cv]</span>
-        </a>
-        <a href="books.html" class="nav-link">
-          <span class="animate_letters">[books]</span>
-        </a>
-        <a href="posts.html" class="nav-link">
-          <span class="animate_letters">[posts]</span>
-        </a>
-        <a href="lists.html" class="nav-link">
-          <span class="animate_letters">[lists]</span>
-        </a>
-        <a href="projects.html" class="nav-link">
-          <span class="animate_letters">[projects]</span>
-        </a>
-      </nav>
-      
-      <div class="about">
-        <h1 class="about-name"><span class="animate_letters">My Time</span></h1>
+    <!-- Подключение стилей -->
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/constellation.css" />
+    <link rel="stylesheet" href="css/time.css" />
+    
+    <!-- Подключение шрифта -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <!-- Фоновые элементы для анимаций -->
+    <div class="constellation-container"></div>
+    <div class="custom-cursor"></div>
+    <div class="cursor-dot"></div>
+    
+    <main>
+      <div class="container">
+        <!-- Навигация -->
+        <nav class="navbar">
+          <a href="index.html" class="nav-link">
+            <span class="animate_letters">[darlingx.com]</span>
+          </a>
+          <a href="cv.html" class="nav-link">
+            <span class="animate_letters">[cv]</span>
+          </a>
+          <a href="books.html" class="nav-link">
+            <span class="animate_letters">[books]</span>
+          </a>
+          <a href="posts.html" class="nav-link">
+            <span class="animate_letters">[posts]</span>
+          </a>
+          <a href="lists.html" class="nav-link">
+            <span class="animate_letters">[lists]</span>
+          </a>
+          <a href="projects.html" class="nav-link">
+            <span class="animate_letters">[projects]</span>
+          </a>
+        </nav>
         
-        <div class="time-container">
-          <div class="time-placeholder">
-            <p>This page will calculate how much time I have left on this planet.</p>
-            <p>Coming soon...</p>
+        <!-- Основной блок с визуализацией времени -->
+        <div class="about">
+          <h1 class="about-name">
+            <span class="animate_letters">My Time</span>
+          </h1>
+          
+          <div class="time-container">
+            <!-- Заголовок страницы -->
+            <div class="time-header">
+              <h2 class="time-title matrix-effect">Lifetime Visualizer</h2>
+              <p class="time-subtitle">Tracking the most valuable resource in the universe - your time.</p>
+            </div>
+            
+            <!-- Статистика (карточки) -->
+            <div class="stats-container">
+              <div class="stat-card matrix-effect">
+                <div class="stat-value" id="age-value">--</div>
+                <div class="stat-label">Current Age</div>
+              </div>
+              <div class="stat-card matrix-effect">
+                <div class="stat-value" id="years-left-value">--</div>
+                <div class="stat-label">Years Remaining</div>
+              </div>
+              <div class="stat-card matrix-effect">
+                <div class="stat-value" id="days-left-value">--</div>
+                <div class="stat-label">Days Remaining</div>
+              </div>
+              <div class="stat-card matrix-effect">
+                <div class="stat-value" id="hours-left-value">--</div>
+                <div class="stat-label">Awake Hours Remaining</div>
+              </div>
+            </div>
+            
+            <!-- Визуализация прогресса жизни -->
+            <div class="time-visualization">
+              <h3>Life Progress</h3>
+              <div class="progress-bar-container">
+                <div class="progress-bar active-life" id="active-progress"></div>
+                <div class="progress-bar-label" id="progress-label">0%</div>
+              </div>
+              <div class="progress-bar-container">
+                <div class="progress-bar later-life" id="later-progress"></div>
+                <div class="progress-bar-label" id="later-progress-label">0%</div>
+              </div>
+            </div>
+            
+            <!-- Разбивка времени по категориям -->
+            <div class="breakdown-card">
+              <h3 class="breakdown-title">Time Allocation Breakdown</h3>
+              <ul class="breakdown-list" id="breakdown-list">
+                <li class="breakdown-item">
+                  <span class="breakdown-label">Sleep (8 hours/day)</span>
+                  <span class="breakdown-value" id="sleep-value">--</span>
+                </li>
+                <li class="breakdown-item">
+                  <span class="breakdown-label">Work (40 hours/week)</span>
+                  <span class="breakdown-value" id="work-value">--</span>
+                </li>
+                <li class="breakdown-item">
+                  <span class="breakdown-label">Commuting (1 hour/day)</span>
+                  <span class="breakdown-value" id="commute-value">--</span>
+                </li>
+                <li class="breakdown-item">
+                  <span class="breakdown-label">Basic Necessities (2 hours/day)</span>
+                  <span class="breakdown-value" id="necessities-value">--</span>
+                </li>
+                <li class="breakdown-item">
+                  <span class="breakdown-label">True Free Time</span>
+                  <span class="breakdown-value" id="free-time-value">--</span>
+                </li>
+              </ul>
+            </div>
+            
+            <!-- Космическое путешествие -->
+            <div class="cosmic-journey">
+              <h3 class="cosmic-title">Your Cosmic Journey</h3>
+              <p class="cosmic-subtitle">Visualize your life journey through the cosmos</p>
+              <div class="star-animation" id="star-field">
+                <!-- JS сгенерирует звёзды -->
+              </div>
+              <p>Each star represents one month of your life. Watch as they travel across your universe.</p>
+            </div>
+            
+            <!-- Настройки пользователя -->
+            <div class="settings-toggle">
+              <button class="settings-btn" id="settings-toggle-btn">Customize Settings</button>
+              <div class="settings-panel" id="settings-panel">
+                <div class="form-group">
+                  <label for="birthdate">Your Birth Date:</label>
+                  <input type="date" id="birthdate" value="2004-05-16">
+                </div>
+                <div class="form-group">
+                  <label for="life-expectancy">Life Expectancy (years):</label>
+                  <input type="number" id="life-expectancy" min="1" max="120" value="70">
+                </div>
+                <div class="form-group">
+                  <label for="active-threshold">Active Life Threshold (years):</label>
+                  <input type="number" id="active-threshold" min="1" max="100" value="50">
+                </div>
+                <div class="form-group">
+                  <label for="sleep-hours">Sleep Hours (per day):</label>
+                  <input type="number" id="sleep-hours" min="0" max="24" step="0.5" value="8">
+                </div>
+                <div class="form-group">
+                  <label for="work-hours">Work Hours (per week):</label>
+                  <input type="number" id="work-hours" min="0" max="168" value="40">
+                </div>
+                <div class="form-group">
+                  <label for="commute-hours">Commute Hours (per day):</label>
+                  <input type="number" id="commute-hours" min="0" max="24" step="0.5" value="1">
+                </div>
+                <div class="form-group">
+                  <label for="necessities-hours">Basic Necessities Hours (per day):</label>
+                  <input type="number" id="necessities-hours" min="0" max="24" step="0.5" value="2">
+                </div>
+                <div class="form-actions">
+                  <button class="settings-btn" id="reset-btn">Reset to Default</button>
+                  <button class="settings-btn" id="apply-btn">Apply</button>
+                </div>
+              </div>
+            </div>
+            
           </div>
         </div>
       </div>
-    </div>
-  </main>
-
-  <!-- JavaScript Libraries -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
-
-  <!-- Original JavaScript Files -->
-  <script src="js/matrix-animation.js"></script>
-  <script src="js/cursor.js"></script>
-  <script src="js/constellation.js"></script>
-  <script src="js/page-transition.js"></script>
-</body>
+    </main>
+    
+    <!-- Подключение скриптов -->
+    <script src="js/cursor.js"></script>
+    <script src="js/constellation.js"></script>
+    <script src="js/time.js"></script>
+  </body>
 </html>
