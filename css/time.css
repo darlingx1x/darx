@@ -4,57 +4,57 @@
     --text-color: #fff;
     --text-color-muted: #ccc;
     --background-color: #000;
-  }
-  
-  /* Базовые стили контейнера */
-  .container {
+}
+
+/* Базовые стили контейнера */
+.container {
     max-width: 1200px;
     margin: 0 auto;
     padding: 1rem;
-  }
-  
-  /* Стили навигации */
-  .navbar {
+}
+
+/* Стили навигации */
+.navbar {
     display: flex;
     gap: 1rem;
     margin-bottom: 2rem;
-  }
-  .nav-link {
+}
+.nav-link {
     text-decoration: none;
     font-family: 'VT323', monospace;
     color: var(--primary-color);
-  }
-  
-  /* Стили для контейнера времени */
-  .time-container {
+}
+
+/* Стили для контейнера времени */
+.time-container {
     max-width: 800px;
     margin: 2rem auto;
     width: 100%;
-  }
-  
-  /* Заголовки и текстовые стили */
-  .time-header {
+}
+
+/* Заголовки и текстовые стили */
+.time-header {
     text-align: center;
     margin-bottom: 2rem;
-  }
-  .time-title {
+}
+.time-title {
     font-size: 2.5rem;
     color: var(--primary-color);
     margin-bottom: 0.5rem;
-  }
-  .time-subtitle {
+}
+.time-subtitle {
     font-size: 1.2rem;
     color: var(--text-color-muted);
-  }
-  
-  /* Стили карточек статистики */
-  .stats-container {
+}
+
+/* Стили карточек статистики */
+.stats-container {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
-  }
-  .stat-card {
+}
+.stat-card {
     background: rgba(0, 0, 0, 0.5);
     border: 1px solid var(--primary-color);
     border-radius: 8px;
@@ -66,12 +66,12 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-  }
-  .stat-card:hover {
+}
+.stat-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(255, 215, 0, 0.25);
-  }
-  .stat-value {
+}
+.stat-value {
     font-size: 2.2rem;
     color: var(--primary-color);
     margin-bottom: 0.5rem;
@@ -89,16 +89,16 @@
     justify-content: center;
     align-items: center;
 }
-  .stat-label {
+.stat-label {
     font-size: 1rem;
     color: var(--text-color-muted);
-  }
-  
-  /* Стили прогресс-баров */
-  .time-visualization {
+}
+
+/* Стили прогресс-баров */
+.time-visualization {
     margin: 2rem 0;
-  }
-  .progress-bar-container {
+}
+.progress-bar-container {
     width: 100%;
     height: 30px;
     background: rgba(30, 30, 30, 0.6);
@@ -106,15 +106,15 @@
     overflow: hidden;
     margin-bottom: 1rem;
     position: relative;
-  }
-  .progress-bar {
+}
+.progress-bar {
     height: 100%;
     border-radius: 15px;
     transition: width 1s ease;
     position: relative;
     overflow: hidden;
-  }
-  .progress-bar-label {
+}
+.progress-bar-label {
     position: absolute;
     left: 50%;
     top: 50%;
@@ -123,54 +123,54 @@
     font-size: 0.9rem;
     z-index: 2;
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
-  }
-  .active-life {
+}
+.active-life {
     background: linear-gradient(90deg, #FFD700, #FFA500);
-  }
-  .later-life {
+}
+.later-life {
     background: linear-gradient(90deg, #FFA500, #FF8C00);
-  }
-  
-  /* Стили карточки разбивки времени */
-  .breakdown-card {
+}
+
+/* Стили карточки разбивки времени */
+.breakdown-card {
     background: rgba(0, 0, 0, 0.5);
     border: 1px solid var(--primary-color);
     border-radius: 8px;
     padding: 1.5rem;
     margin-bottom: 2rem;
-  }
-  .breakdown-title {
+}
+.breakdown-title {
     font-size: 1.5rem;
     color: var(--primary-color);
     margin-bottom: 1.5rem;
     text-align: center;
-  }
-  .breakdown-list {
+}
+.breakdown-list {
     list-style-type: none;
     padding: 0;
-  }
-  .breakdown-item {
+}
+.breakdown-item {
     display: flex;
     justify-content: space-between;
     padding: 0.75rem 0;
     border-bottom: 1px solid rgba(255, 215, 0, 0.2);
-  }
-  .breakdown-item:last-child {
+}
+.breakdown-item:last-child {
     border-bottom: none;
-  }
-  .breakdown-label {
+}
+.breakdown-label {
     color: var(--text-color);
-  }
-  .breakdown-value {
+}
+.breakdown-value {
     color: var(--primary-color);
-  }
-  
-  /* Эффект "матрицы" */
-  .matrix-effect {
+}
+
+/* Эффект "матрицы" */
+.matrix-effect {
     position: relative;
     overflow: hidden;
-  }
-  .matrix-effect::after {
+}
+.matrix-effect::after {
     content: '';
     position: absolute;
     top: 0;
@@ -183,171 +183,100 @@
       rgba(0, 0, 0, 0) 100%);
     animation: matrix-scan 2s infinite linear;
     pointer-events: none;
-  }
-  @keyframes matrix-scan {
+}
+@keyframes matrix-scan {
     0% { transform: translateY(-100%); }
     100% { transform: translateY(100%); }
-  }
-  .blink {
+}
+.blink {
     animation: blink 1s infinite;
-  }
-  @keyframes blink {
+}
+@keyframes blink {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
-  }
-  
-  /* Статичное звездное поле вместо анимированного */
-  .cosmic-journey {
+}
+
+/* Стили секции космического путешествия */
+.cosmic-journey {
     margin-top: 3rem;
     text-align: center;
     margin-bottom: 3rem;
-  }
-  .cosmic-title {
+}
+.cosmic-title {
     font-size: 1.8rem;
     color: var(--primary-color);
     margin-bottom: 1rem;
-  }
-  .cosmic-subtitle {
+}
+.cosmic-subtitle {
     color: var(--text-color-muted);
     margin-bottom: 2rem;
-  }
-  .static-stars-field {
-    height: 200px;
+}
+
+/* === Обновлённые стили для статичного звездного поля === */
+/* Основной контейнер с равномерным распределением звёзд */
+.static-stars-field {
+    width: 100%;
     position: relative;
     margin: 2rem 0;
     overflow: hidden;
     border-radius: 8px;
     background: rgba(0, 0, 0, 0.7);
     border: 1px solid rgba(255, 215, 0, 0.3);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 1rem;
-  }
-  .static-star {
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* Стили отдельных звёзд */
+.static-star {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     background-color: rgba(255, 255, 255, 0.7);
-    margin: 2px;
     transition: transform 0.3s ease;
-  }
-  .static-star.past {
+    display: block;
+}
+
+/* Стили для прожитых месяцев */
+.static-star.past {
     background-color: #FFD700;
     box-shadow: 0 0 7px rgba(255, 215, 0, 0.7);
-  }
-  .static-star:hover {
+}
+
+/* Эффект при наведении на звезду */
+.static-star:hover {
     transform: scale(1.8);
     box-shadow: 0 0 12px rgba(255, 215, 0, 0.8);
-  }
-  
-  /* Стили для карты воспоминаний */
-  .memory-map-section {
-    margin-top: 3rem;
-    margin-bottom: 3rem;
-  }
-  
-  .memory-title {
-    font-size: 1.8rem;
-    color: var(--primary-color);
-    margin-bottom: 1rem;
-  }
-  
-  .memory-subtitle {
-    color: var(--text-color-muted);
-    margin-bottom: 2rem;
-  }
-  
-  .memory-container {
-    position: relative;
-    height: 400px;
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 8px;
-    overflow: hidden;
-    background: rgba(0, 0, 0, 0.7);
-  }
-  
-  #memory-map {
-    width: 100%;
-    height: 100%;
-  }
-  
-  .memory-controls {
-    position: absolute;
-    bottom: 15px;
-    right: 15px;
-    display: flex;
-    gap: 10px;
-  }
-  
-  /* Модальное окно для добавления воспоминаний */
-  .memory-modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.85);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 100;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-  
-  .memory-modal.active {
-    opacity: 1;
-  }
-  
-  .memory-modal-content {
-    background: rgba(10, 10, 10, 0.95);
-    border: 1px solid var(--primary-color);
-    border-radius: 8px;
-    padding: 2rem;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
-    animation: pulse 2s infinite alternate;
-  }
-  
-  .emotion-selector {
-    margin: 1.5rem 0;
-  }
-  
-  .emotion-scale {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 0.5rem;
-  }
-  
-  .emotion {
-    cursor: pointer;
-    padding: 5px 10px;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    border-radius: 4px;
-    transition: all 0.3s ease;
-  }
-  
-  .emotion:hover, .emotion.selected {
-    background: rgba(255, 215, 0, 0.2);
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
-  }
-  
-  @keyframes pulse {
-    from { box-shadow: 0 0 30px rgba(255, 215, 0, 0.2); }
-    to { box-shadow: 0 0 50px rgba(255, 215, 0, 0.4); }
-  }
-  
-  /* Стили панели настроек */
-  .settings-toggle {
+    z-index: 5;
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 480px) {
+    .static-stars-field {
+        padding: 8px;
+    }
+    
+    .static-star {
+        width: 5px;
+        height: 5px;
+    }
+}
+
+/* Дополнительные стили для поддержки grid-layout */
+@supports (display: grid) {
+    .static-stars-field {
+        display: grid;
+        grid-gap: 4px;
+        justify-content: center;
+        align-content: start;
+    }
+}
+
+/* Стили для панели настроек */
+.settings-toggle {
     text-align: center;
     margin-top: 2rem;
-  }
-  .settings-btn {
+}
+.settings-btn {
     background: transparent;
     border: 1px solid var(--primary-color);
     color: var(--primary-color);
@@ -357,31 +286,31 @@
     font-family: 'VT323', monospace;
     font-size: 1.1rem;
     transition: all 0.3s ease;
-  }
-  .settings-btn:hover {
+}
+.settings-btn:hover {
     background: var(--primary-color);
     color: black;
-  }
-  .settings-panel {
+}
+.settings-panel {
     background: rgba(0, 0, 0, 0.8);
     border: 1px solid var(--primary-color);
     border-radius: 8px;
     padding: 1.5rem;
     margin-top: 1rem;
     display: none;
-  }
-  .settings-panel.visible {
+}
+.settings-panel.visible {
     display: block;
-  }
-  .form-group {
+}
+.form-group {
     margin-bottom: 1rem;
-  }
-  .form-group label {
+}
+.form-group label {
     display: block;
     margin-bottom: 0.5rem;
     color: var(--text-color);
-  }
-  .form-group input {
+}
+.form-group input {
     width: 100%;
     padding: 0.5rem;
     background: rgba(30, 30, 30, 0.9);
@@ -389,87 +318,60 @@
     border-radius: 4px;
     color: var(--primary-color);
     font-family: 'VT323', monospace;
-  }
-  .form-actions {
+}
+.form-actions {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
     margin-top: 1.5rem;
-  }
-  
-  /* Адаптивные стили */
-  @media (max-width: 768px) {
+}
+
+/* Адаптивные стили */
+@media (max-width: 768px) {
     .stats-container {
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
     }
     .stat-value {
-      font-size: 1.8rem;
+        font-size: 1.8rem;
     }
     .stat-label {
-      font-size: 0.9rem;
+        font-size: 0.9rem;
     }
     .form-actions {
-      flex-direction: column;
-      gap: 0.5rem;
+        flex-direction: column;
+        gap: 0.5rem;
     }
     .settings-btn {
-      width: 100%;
+        width: 100%;
     }
     .breakdown-item {
-      flex-direction: column;
-      text-align: left;
+        flex-direction: column;
+        text-align: left;
     }
     .breakdown-value {
-      margin-top: 0.25rem;
+        margin-top: 0.25rem;
     }
-    .memory-container {
-      height: 300px;
-    }
-    .emotion-scale {
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-  }
-  
-  @media (max-width: 480px) {
+}
+@media (max-width: 480px) {
     .stats-container {
-      grid-template-columns: 1fr;
+        grid-template-columns: 1fr;
     }
     .time-title {
-      font-size: 2rem;
+        font-size: 2rem;
     }
     .cosmic-title, .memory-title {
-      font-size: 1.5rem;
+        font-size: 1.5rem;
     }
     .breakdown-title {
-      font-size: 1.3rem;
+        font-size: 1.3rem;
     }
-    .static-stars-field {
-      height: 150px;
-      padding: 0.5rem;
-      min-height: auto; /* Убираем минимальную высоту */
-      max-height: none; /* Убираем ограничение по высоте */
-    }
-    .static-star {
-      width: 6px;
-      height: 6px;
-      margin: 1.5px;
-    }
-    .memory-container {
-      height: 250px;
-    }
-    .memory-controls {
-      bottom: 10px;
-      right: 10px;
-    }
-  }
-  /* Настройка отображения контейнера для вертикальных экранов */
+}
 @media (max-width: 480px) and (orientation: portrait) {
     .static-stars-field {
-      max-width: 100%;
-      overflow-y: visible; /* Позволяем содержимому расширяться по вертикали */
-      height: auto;
-      min-height: 250px; /* Минимальная высота для портретной ориентации */
+        max-width: 100%;
+        overflow-y: visible;
+        height: auto;
+        min-height: 250px;
     }
-  }
+}
