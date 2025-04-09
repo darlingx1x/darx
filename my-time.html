@@ -14,7 +14,6 @@
   
   <!-- Подключение стилей -->
   <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/constellation.css">
   <link rel="stylesheet" href="css/time.css">
   <link rel="stylesheet" href="css/memory-map.css">
   
@@ -22,10 +21,45 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary-color: #FFD700;
+      --bg-color: #000;
+      --text-color: #fff;
+    }
+    
+    #universe-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      opacity: 0.9;
+    }
+    
+    .container {
+      position: relative;
+      z-index: 10;
+    }
+    
+    /* Mobile responsive styles */
+    @media screen and (max-width: 768px) {
+      .attribution {
+        position: relative;
+        z-index: 15;
+        background: rgba(0,0,0,0.7);
+        padding: 5px;
+        border-radius: 5px;
+        margin-top: 2rem;
+      }
+    }
+  </style>
 </head>
 <body>
-  <!-- Фоновые элементы для анимаций -->
-  <div class="constellation-container"></div>
+  <!-- Заменяем constellation-container на universe-container -->
+  <div id="universe-container"></div>
   <div class="custom-cursor"></div>
   <div class="cursor-dot"></div>
   
@@ -194,10 +228,68 @@
     </div>
   </main>
   
+  <!-- JavaScript Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+  
   <!-- Подключение скриптов -->
   <script src="js/cursor.js"></script>
-  <script src="js/constellation.js"></script>
   <script src="js/time.js"></script>
   <script src="js/memory-map.js"></script>
+  
+  <!-- Скрипт создания вселенной - скопирован из index.html -->
+  <script>
+    class StarryBackground {
+      constructor() {
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.setupRenderer();
+        this.createUniverseBackground();
+        this.setupEventListeners();
+        this.animate();
+      }
+
+      setupRenderer() {
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('universe-container').appendChild(this.renderer.domElement);
+        this.camera.position.z = 50;
+      }
+
+      createUniverseBackground() {
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsMaterial = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.5, opacity: 0.7 });
+        const starsVertices = [];
+        for (let i = 0; i < 5000; i++) {
+          const x = THREE.MathUtils.randFloatSpread(2000);
+          const y = THREE.MathUtils.randFloatSpread(2000);
+          const z = THREE.MathUtils.randFloatSpread(2000);
+          starsVertices.push(x, y, z);
+        }
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+        const starField = new THREE.Points(starsGeometry, starsMaterial);
+        this.scene.add(starField);
+      }
+
+      setupEventListeners() {
+        window.addEventListener('resize', this.onWindowResize.bind(this));
+      }
+
+      onWindowResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      animate() {
+        requestAnimationFrame(this.animate.bind(this));
+        this.renderer.render(this.scene, this.camera);
+      }
+    }
+
+    window.addEventListener('load', () => {
+      new StarryBackground();
+    });
+  </script>
 </body>
 </html>
