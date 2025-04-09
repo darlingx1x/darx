@@ -135,6 +135,20 @@
             <p>Each star represents one month of your life. Golden stars show the months you've already lived.</p>
           </div>
           
+          <!-- Memory Constellation Section -->
+          <div class="memory-map-section">
+            <h3 class="memory-title">Memory Constellation</h3>
+            <p class="memory-subtitle">Map your key memories and future aspirations in spacetime</p>
+            
+            <div class="memory-container">
+              <canvas id="memory-map" width="800" height="400"></canvas>
+              <div class="memory-controls">
+                <button id="add-memory-btn" class="settings-btn">Capture Memory</button>
+                <button id="project-btn" class="settings-btn">Project Future</button>
+              </div>
+            </div>
+          </div>
+          
           <!-- Настройки пользователя -->
           <div class="settings-toggle">
             <button class="settings-btn" id="settings-toggle-btn">Customize Settings</button>
@@ -183,5 +197,6 @@
   <script src="js/cursor.js"></script>
   <script src="js/constellation.js"></script>
   <script src="js/time.js"></script>
+  <script src="js/memory-map.js"></script>
 </body>
 </html>
