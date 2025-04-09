@@ -1,71 +1,166 @@
-// Код для memory-map.js
+/**
+ * memory-map.js
+ * Интерактивная карта воспоминаний и проекций будущего
+ */
+
+// Глобальные переменные для работы с картой
+let memoryCanvas;
+let memoryContext;
+let memories = [];
+let isCanvasInitialized = false;
+let audioContext = null;
+
+// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
-  // Инициализация WebGL контекста
-  const canvas = document.getElementById('memory-map');
-  if (!canvas) return;
+  console.log('Memory Map initializing...');
   
-  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-  if (!gl) {
-    console.warn('WebGL не поддерживается, используем canvas fallback');
-    initCanvasMemoryMap(canvas);
+  // Получаем canvas элемент
+  memoryCanvas = document.getElementById('memory-map');
+  if (!memoryCanvas) {
+    console.error('Memory map canvas not found!');
     return;
   }
   
-  // Хранение воспоминаний
-  let memories = JSON.parse(localStorage.getItem('timeMemories') || '[]');
+  // Получаем 2D контекст для рисования
+  memoryContext = memoryCanvas.getContext('2d');
+  if (!memoryContext) {
+    console.error('Failed to get 2D context for memory map!');
+    return;
+  }
   
-  // Инициализация 3D сцены
-  initWebGLMemoryMap(gl, memories);
+  // Устанавливаем размеры canvas
+  resizeCanvas();
   
-  // Обработчики для кнопок
-  document.getElementById('add-memory-btn').addEventListener('click', function() {
-    showMemoryModal('past');
-  });
+  // Подключаем обработчик изменения размера окна
+  window.addEventListener('resize', resizeCanvas);
   
-  document.getElementById('project-btn').addEventListener('click', function() {
-    showMemoryModal('future');
-  });
+  // Загружаем сохраненные воспоминания
+  loadMemories();
+  
+  // Подключаем обработчики для кнопок
+  setupButtonHandlers();
+  
+  // Рисуем карту
+  drawMemoryMap();
+  
+  // Отмечаем инициализацию
+  isCanvasInitialized = true;
+  console.log('Memory Map initialized successfully!');
 });
 
-// Функция для отображения модального окна добавления воспоминания
-function showMemoryModal(type) {
-  // Создаем модальное окно в кибер-стиле
-  const modal = document.createElement('div');
-  modal.className = 'memory-modal';
+// Устанавливаем размеры canvas по размеру контейнера
+function resizeCanvas() {
+  if (!memoryCanvas) return;
   
-  const title = type === 'past' ? 'Capture Memory Fragment' : 'Project Future Aspiration';
+  const container = memoryCanvas.parentElement;
+  if (!container) return;
   
-  modal.innerHTML = `
-    <div class="memory-modal-content">
-      <h4>${title}</h4>
-      <input type="text" id="memory-title" placeholder="Title">
-      <textarea id="memory-desc" placeholder="Description"></textarea>
-      <div class="emotion-selector">
-        <span>Emotional signature:</span>
-        <div class="emotion-scale">
-          <span data-value="joy" class="emotion">Joy</span>
-          <span data-value="reflection" class="emotion">Reflection</span>
-          <span data-value="aspiration" class="emotion">Aspiration</span>
-          <span data-value="sublime" class="emotion">Sublime</span>
-        </div>
-      </div>
-      <div class="modal-actions">
-        <button id="cancel-memory">Cancel</button>
-        <button id="save-memory">Crystallize</button>
-      </div>
-    </div>
-  `;
+  // Получаем размеры контейнера
+  const rect = container.getBoundingClientRect();
   
-  document.body.appendChild(modal);
-  // Добавление анимации появления
-  setTimeout(() => modal.classList.add('active'), 10);
+  // Устанавливаем размеры canvas
+  memoryCanvas.width = rect.width;
+  memoryCanvas.height = rect.height;
   
-  // Подключаем обработчики событий
-  setupMemoryModalHandlers(modal, type);
+  // Перерисовываем карту
+  if (isCanvasInitialized) {
+    drawMemoryMap();
+  }
 }
 
-// Функция для настройки обработчиков событий модального окна
-function setupMemoryModalHandlers(modal, type) {
+// Настройка обработчиков для кнопок
+function setupButtonHandlers() {
+  const addMemoryBtn = document.getElementById('add-memory-btn');
+  const projectBtn = document.getElementById('project-btn');
+  
+  if (addMemoryBtn) {
+    console.log('Setting up memory button handler');
+    addMemoryBtn.addEventListener('click', function() {
+      console.log('Add memory button clicked');
+      showMemoryModal('past');
+    });
+  } else {
+    console.error('Add memory button not found!');
+  }
+  
+  if (projectBtn) {
+    console.log('Setting up project button handler');
+    projectBtn.addEventListener('click', function() {
+      console.log('Project button clicked');
+      showMemoryModal('future');
+    });
+  } else {
+    console.error('Project button not found!');
+  }
+}
+
+// Отображение модального окна для добавления воспоминания
+function showMemoryModal(type) {
+  console.log(`Showing memory modal for type: ${type}`);
+  
+  // Проверяем, существует ли уже модальное окно
+  let modal = document.querySelector('.memory-modal');
+  
+  // Если окна нет, создаем его
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.className = 'memory-modal';
+    
+    const title = type === 'past' ? 'Capture Memory Fragment' : 'Project Future Aspiration';
+    
+    // Создаем содержимое модального окна
+    modal.innerHTML = `
+      <div class="memory-modal-content">
+        <h4>${title}</h4>
+        <input type="text" id="memory-title" placeholder="Title" autocomplete="off">
+        <textarea id="memory-desc" placeholder="Description"></textarea>
+        <div class="emotion-selector">
+          <span>Emotional signature:</span>
+          <div class="emotion-scale">
+            <span data-value="joy" class="emotion">Joy</span>
+            <span data-value="reflection" class="emotion">Reflection</span>
+            <span data-value="aspiration" class="emotion">Aspiration</span>
+            <span data-value="sublime" class="emotion">Sublime</span>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button id="cancel-memory">Cancel</button>
+          <button id="save-memory">Crystallize</button>
+        </div>
+        <input type="hidden" id="memory-type" value="${type}">
+      </div>
+    `;
+    
+    // Добавляем модальное окно на страницу
+    document.body.appendChild(modal);
+  } else {
+    // Обновляем заголовок и тип воспоминания
+    const title = type === 'past' ? 'Capture Memory Fragment' : 'Project Future Aspiration';
+    modal.querySelector('h4').textContent = title;
+    modal.querySelector('#memory-type').value = type;
+    
+    // Очищаем поля ввода
+    modal.querySelector('#memory-title').value = '';
+    modal.querySelector('#memory-desc').value = '';
+    
+    // Сбрасываем выбор эмоции
+    modal.querySelectorAll('.emotion').forEach(emotion => {
+      emotion.classList.remove('selected');
+    });
+  }
+  
+  // Подключаем обработчики событий
+  setupModalHandlers(modal);
+  
+  // Отображаем модальное окно
+  setTimeout(() => {
+    modal.classList.add('active');
+    playSound('open');
+  }, 10);
+}
+
+// Настройка обработчиков событий модального окна
+function setupModalHandlers(modal) {
   // Выбор эмоции
   const emotions = modal.querySelectorAll('.emotion');
   emotions.forEach(emotion => {
@@ -74,6 +169,7 @@ function setupMemoryModalHandlers(modal, type) {
       emotions.forEach(e => e.classList.remove('selected'));
       // Добавляем выделение на выбранную эмоцию
       this.classList.add('selected');
+      playSound('select');
     });
   });
   
@@ -81,7 +177,10 @@ function setupMemoryModalHandlers(modal, type) {
   const cancelBtn = modal.querySelector('#cancel-memory');
   cancelBtn.addEventListener('click', function() {
     modal.classList.remove('active');
-    setTimeout(() => modal.remove(), 300);
+    playSound('close');
+    setTimeout(() => {
+      modal.remove();
+    }, 300);
   });
   
   // Кнопка сохранения
@@ -90,6 +189,7 @@ function setupMemoryModalHandlers(modal, type) {
     const title = modal.querySelector('#memory-title').value.trim();
     const description = modal.querySelector('#memory-desc').value.trim();
     const selectedEmotion = modal.querySelector('.emotion.selected');
+    const type = modal.querySelector('#memory-type').value;
     
     if (!title) {
       alert('Please enter a title for your memory');
@@ -109,119 +209,132 @@ function setupMemoryModalHandlers(modal, type) {
       position: generateRandomPosition(type)
     };
     
-    // Получаем существующие воспоминания
-    let memories = JSON.parse(localStorage.getItem('timeMemories') || '[]');
-    memories.push(memory);
-    
-    // Сохраняем обновленный список
-    localStorage.setItem('timeMemories', JSON.stringify(memories));
-    
-    // Обновляем визуализацию
-    updateMemoryVisualization();
+    // Сохраняем воспоминание
+    saveMemory(memory);
     
     // Закрываем модальное окно
     modal.classList.remove('active');
-    setTimeout(() => modal.remove(), 300);
+    playSound('success');
+    setTimeout(() => {
+      modal.remove();
+    }, 300);
   });
 }
 
-// Генерация случайной позиции для воспоминания
+// Генерация случайной позиции в зависимости от типа воспоминания
 function generateRandomPosition(type) {
   // Прошлые воспоминания располагаются в левой части карты
   // Будущие проекции - в правой
-  const x = type === 'past' ? Math.random() * 0.4 : 0.6 + Math.random() * 0.4;
-  const y = Math.random();
-  const z = Math.random() * 0.5;
+  let x, y, z;
+  
+  if (type === 'past') {
+    x = Math.random() * 0.4; // 0-40% ширины для прошлых воспоминаний
+  } else {
+    x = 0.6 + Math.random() * 0.4; // 60-100% ширины для будущих проекций
+  }
+  
+  y = Math.random() * 0.8 + 0.1; // 10-90% высоты для всех воспоминаний
+  z = Math.random() * 0.5; // глубина для 3D-эффекта
   
   return { x, y, z };
 }
 
-// Обновление визуализации воспоминаний
-function updateMemoryVisualization() {
-  const canvas = document.getElementById('memory-map');
-  if (!canvas) return;
+// Сохранение воспоминания
+function saveMemory(memory) {
+  // Загружаем существующие воспоминания
+  memories = loadMemories();
   
-  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-  if (!gl) {
-    initCanvasMemoryMap(canvas);
+  // Добавляем новое воспоминание
+  memories.push(memory);
+  
+  // Сохраняем в localStorage
+  localStorage.setItem('timeMemories', JSON.stringify(memories));
+  
+  // Обновляем визуализацию
+  drawMemoryMap();
+}
+
+// Загрузка сохраненных воспоминаний
+function loadMemories() {
+  try {
+    const storedMemories = localStorage.getItem('timeMemories');
+    memories = storedMemories ? JSON.parse(storedMemories) : [];
+    return memories;
+  } catch (error) {
+    console.error('Error loading memories:', error);
+    return [];
+  }
+}
+
+// Рисование карты воспоминаний
+function drawMemoryMap() {
+  if (!memoryContext || !memoryCanvas) {
+    console.error('Cannot draw memory map: context or canvas not available');
     return;
   }
   
-  // Получаем сохраненные воспоминания
-  const memories = JSON.parse(localStorage.getItem('timeMemories') || '[]');
+  // Загружаем воспоминания, если они еще не загружены
+  if (!memories.length) {
+    memories = loadMemories();
+  }
   
-  // Обновляем WebGL сцену
-  initWebGLMemoryMap(gl, memories);
-}
-
-// Функция инициализации 3D визуализации воспоминаний
-function initWebGLMemoryMap(gl, memories) {
-  // Базовая реализация WebGL для отображения точек в 3D пространстве
-  // Очищаем канвас
-  gl.clearColor(0.0, 0.0, 0.0, 0.0);
-  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  // Очищаем холст
+  memoryContext.clearRect(0, 0, memoryCanvas.width, memoryCanvas.height);
   
-  // Если нет воспоминаний, показываем заглушку
-  if (memories.length === 0) {
-    drawPlaceholder(gl);
+  // Если нет воспоминаний, рисуем placeholder
+  if (!memories.length) {
+    drawPlaceholder();
     return;
   }
   
-  // Иначе рисуем точки и соединения между ними
-  drawMemoryPoints(gl, memories);
+  // Рисуем соединительные линии между воспоминаниями
+  drawConnectionLines();
+  
+  // Рисуем точки воспоминаний
+  drawMemoryPoints();
 }
 
-// Отображение заглушки, когда нет воспоминаний
-function drawPlaceholder(gl) {
-  // Простая анимация пульсирующего текста на канвасе
-  const canvas = gl.canvas;
-  const ctx = canvas.getContext('2d');
+// Рисование placeholder, когда нет воспоминаний
+function drawPlaceholder() {
+  memoryContext.font = '20px VT323, monospace';
+  memoryContext.fillStyle = '#FFD700';
+  memoryContext.textAlign = 'center';
+  memoryContext.textBaseline = 'middle';
+  memoryContext.fillText('No memories captured yet', memoryCanvas.width / 2, memoryCanvas.height / 2 - 15);
+  memoryContext.fillText('Use the buttons below to start your constellation', memoryCanvas.width / 2, memoryCanvas.height / 2 + 15);
+}
+
+// Рисование соединительных линий между воспоминаниями
+function drawConnectionLines() {
+  // Сортируем воспоминания по дате
+  const sortedMemories = [...memories].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   
-  // Очищаем 2D контекст
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Рисуем линии
+  memoryContext.beginPath();
+  let firstPoint = true;
   
-  // Рисуем текст
-  ctx.font = '20px VT323, monospace';
-  ctx.fillStyle = '#FFD700';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('No memories captured yet', canvas.width / 2, canvas.height / 2 - 15);
-  ctx.fillText('Use the buttons below to start your constellation', canvas.width / 2, canvas.height / 2 + 15);
+  sortedMemories.forEach(memory => {
+    const x = memory.position.x * memoryCanvas.width;
+    const y = memory.position.y * memoryCanvas.height;
+    
+    if (firstPoint) {
+      memoryContext.moveTo(x, y);
+      firstPoint = false;
+    } else {
+      memoryContext.lineTo(x, y);
+    }
+  });
+  
+  memoryContext.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+  memoryContext.lineWidth = 1;
+  memoryContext.stroke();
 }
 
 // Рисование точек воспоминаний
-function drawMemoryPoints(gl, memories) {
-  // Упрощенная реализация для демонстрации
-  // В реальном проекте здесь был бы полноценный WebGL код
-  // с шейдерами, буферами и т.д.
-  
-  // Для демонстрации используем 2D канвас
-  const canvas = gl.canvas;
-  const ctx = canvas.getContext('2d');
-  
-  // Очищаем 2D контекст
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
-  // Рисуем соединительные линии
-  ctx.beginPath();
-  memories.forEach((memory, i) => {
-    const x = memory.position.x * canvas.width;
-    const y = memory.position.y * canvas.height;
-    
-    if (i === 0) {
-      ctx.moveTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
-    }
-  });
-  ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
-  
-  // Рисуем точки воспоминаний
+function drawMemoryPoints() {
   memories.forEach(memory => {
-    const x = memory.position.x * canvas.width;
-    const y = memory.position.y * canvas.height;
+    const x = memory.position.x * memoryCanvas.width;
+    const y = memory.position.y * memoryCanvas.height;
     
     // Определяем цвет в зависимости от эмоции
     let color;
@@ -234,103 +347,121 @@ function drawMemoryPoints(gl, memories) {
     }
     
     // Рисуем свечение
-    const gradient = ctx.createRadialGradient(x, y, 0, x, y, 15);
+    const gradient = memoryContext.createRadialGradient(x, y, 0, x, y, 15);
     gradient.addColorStop(0, color);
     gradient.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(x, y, 15, 0, Math.PI * 2);
-    ctx.fill();
+    memoryContext.fillStyle = gradient;
+    memoryContext.beginPath();
+    memoryContext.arc(x, y, 15, 0, Math.PI * 2);
+    memoryContext.fill();
     
     // Рисуем точку
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(x, y, 4, 0, Math.PI * 2);
-    ctx.fill();
+    memoryContext.fillStyle = color;
+    memoryContext.beginPath();
+    memoryContext.arc(x, y, 4, 0, Math.PI * 2);
+    memoryContext.fill();
     
     // Добавляем подпись
-    ctx.font = '12px VT323, monospace';
-    ctx.fillStyle = '#FFFFFF';
-    ctx.textAlign = 'center';
-    ctx.fillText(memory.title, x, y - 15);
+    memoryContext.font = '12px VT323, monospace';
+    memoryContext.fillStyle = '#FFFFFF';
+    memoryContext.textAlign = 'center';
+    memoryContext.fillText(memory.title, x, y - 15);
+    
+    // Добавляем маркер прошлое/будущее
+    const typeMarker = memory.type === 'past' ? '◄' : '►';
+    memoryContext.fillText(typeMarker, x, y + 15);
   });
 }
 
-// Оптимизированный canvas fallback для браузеров без WebGL
-function initCanvasMemoryMap(canvas) {
-  const ctx = canvas.getContext('2d');
-  // Получаем сохраненные воспоминания
-  const memories = JSON.parse(localStorage.getItem('timeMemories') || '[]');
-  
-  // Если нет воспоминаний, показываем заглушку
-  if (memories.length === 0) {
-    // Очищаем канвас
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Рисуем текст
-    ctx.font = '20px VT323, monospace';
-    ctx.fillStyle = '#FFD700';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('No memories captured yet', canvas.width / 2, canvas.height / 2 - 15);
-    ctx.fillText('Use the buttons below to start your constellation', canvas.width / 2, canvas.height / 2 + 15);
-    return;
+// Звуковые эффекты
+function playSound(type) {
+  // Инициализируем AudioContext при первом вызове
+  if (!audioContext) {
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+      console.warn('Web Audio API not supported:', e);
+      return;
+    }
   }
   
-  // Иначе рисуем точки и соединения между ними (аналогично WebGL версии)
-  // Очищаем канвас
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Создаем осциллятор и усилитель
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
   
-  // Рисуем соединительные линии
-  ctx.beginPath();
-  memories.forEach((memory, i) => {
-    const x = memory.position.x * canvas.width;
-    const y = memory.position.y * canvas.height;
-    
-    if (i === 0) {
-      ctx.moveTo(x, y);
-    } else {
-      ctx.lineTo(x, y);
-    }
-  });
-  ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
-  ctx.lineWidth = 1;
-  ctx.stroke();
+  // Настраиваем параметры в зависимости от типа звука
+  switch (type) {
+    case 'open':
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.3);
+      break;
+      
+    case 'close':
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+      oscillator.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.3);
+      break;
+      
+    case 'select':
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+      gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.1);
+      break;
+      
+    case 'success':
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(550, audioContext.currentTime + 0.1);
+      oscillator.frequency.setValueAtTime(660, audioContext.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.3);
+      break;
+      
+    default:
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+      gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.1);
+  }
   
-  // Рисуем точки воспоминаний
-  memories.forEach(memory => {
-    const x = memory.position.x * canvas.width;
-    const y = memory.position.y * canvas.height;
-    
-    // Определяем цвет в зависимости от эмоции
-    let color;
-    switch(memory.emotion) {
-      case 'joy': color = '#FFD700'; break; // Золотой
-      case 'reflection': color = '#87CEEB'; break; // Голубой
-      case 'aspiration': color = '#9370DB'; break; // Пурпурный
-      case 'sublime': color = '#00FA9A'; break; // Зеленый
-      default: color = '#FFFFFF'; // Белый
-    }
-    
-    // Рисуем свечение
-    const gradient = ctx.createRadialGradient(x, y, 0, x, y, 15);
-    gradient.addColorStop(0, color);
-    gradient.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = gradient;
-    ctx.beginPath();
-    ctx.arc(x, y, 15, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Рисуем точку
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(x, y, 4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Добавляем подпись
-    ctx.font = '12px VT323, monospace';
-    ctx.fillStyle = '#FFFFFF';
-    ctx.textAlign = 'center';
-    ctx.fillText(memory.title, x, y - 15);
-  });
+  // Подключаем осциллятор к усилителю, а усилитель к выходу
+  oscillator.connect(gain);
+  gain.connect(audioContext.destination);
 }
+
+// Очистка всех воспоминаний (для тестирования)
+function clearAllMemories() {
+  if (confirm('Are you sure you want to delete all memories?')) {
+    localStorage.removeItem('timeMemories');
+    memories = [];
+    drawMemoryMap();
+  }
+}
+
+// Экспортируем функции для глобального доступа
+window.MemoryMap = {
+  initialize: function() {
+    loadMemories();
+    drawMemoryMap();
+  },
+  addMemory: function(type) {
+    showMemoryModal(type);
+  },
+  clearMemories: clearAllMemories
+};
