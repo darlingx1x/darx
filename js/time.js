@@ -207,28 +207,45 @@ class LifeTimeCalculator {
   const monthsLived = (now.getFullYear() - birthDate.getFullYear()) * 12 +
   (now.getMonth() - birthDate.getMonth());
 
-// Определяем максимальное количество звезд в ряду
-const starsPerRow = Math.min(Math.floor(container.clientWidth / 15), 20);
+// Определяем оптимальное количество звезд в ряду, чтобы все звезды были одинакового размера и равномерно распределены
+const containerWidth = container.clientWidth;
+// Вычисляем количество строк, округляя вверх для обеспечения достаточного места
+const rows = Math.ceil(totalMonths / Math.floor(containerWidth / 12));
+// Вычисляем количество звезд в ряду, чтобы они равномерно распределялись
+const starsPerRow = Math.ceil(totalMonths / rows);
+
+// Устанавливаем ширину контейнера для flex-элементов
+container.style.display = 'flex';
+container.style.flexWrap = 'wrap';
+container.style.justifyContent = 'flex-start';
+
+// Вычисляем размер звезды, чтобы они равномерно заполняли строку
+const starSize = Math.floor((containerWidth - (starsPerRow * 4)) / starsPerRow);
 
 // Создаем звезды
 for (let i = 0; i < totalMonths; i++) {
-const star = document.createElement('div');
-star.className = 'static-star';
-
-// Если месяц уже прожит, добавляем класс past
-if (i < monthsLived) {
-star.classList.add('past');
-}
-
-// Добавляем информацию о месяце при наведении
-const monthIndex = birthDate.getMonth() + i;
-const year = birthDate.getFullYear() + Math.floor(monthIndex / 12);
-const month = monthIndex % 12;
-const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
-    'July', 'August', 'September', 'October', 'November', 'December'];
-
-star.title = `${monthNames[month]} ${year}`;
-container.appendChild(star);
+  const star = document.createElement('div');
+  star.className = 'static-star';
+  
+  // Устанавливаем размер звезды динамически
+  star.style.width = `${starSize}px`;
+  star.style.height = `${starSize}px`;
+  star.style.margin = '2px';
+  
+  // Если месяц уже прожит, добавляем класс past
+  if (i < monthsLived) {
+    star.classList.add('past');
+  }
+  
+  // Добавляем информацию о месяце при наведении
+  const monthIndex = birthDate.getMonth() + i;
+  const year = birthDate.getFullYear() + Math.floor(monthIndex / 12);
+  const month = monthIndex % 12;
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+      'July', 'August', 'September', 'October', 'November', 'December'];
+  
+  star.title = `${monthNames[month]} ${year}`;
+  container.appendChild(star);
 }
 }
 

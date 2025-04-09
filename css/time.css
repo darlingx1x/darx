@@ -83,6 +83,11 @@
     width: 100%;
     padding: 0 0.5rem;
     letter-spacing: 0.5px;
+    font-family: 'VT323', monospace;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
   .stat-label {
     font-size: 1rem;
@@ -221,20 +226,20 @@
     padding: 1rem;
   }
   .static-star {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
     background-color: rgba(255, 255, 255, 0.7);
-    margin: 1.5px;
+    margin: 2px;
     transition: transform 0.3s ease;
   }
   .static-star.past {
     background-color: #FFD700;
-    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 7px rgba(255, 215, 0, 0.7);
   }
   .static-star:hover {
-    transform: scale(1.5);
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
+    transform: scale(1.8);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.8);
   }
   
   /* Стили панели настроек */
@@ -337,8 +342,8 @@
       height: 150px;
     }
     .static-star {
-      width: 4px;
-      height: 4px;
-      margin: 1px;
+      width: 6px;
+      height: 6px;
+      margin: 1.5px;
     }
   }
