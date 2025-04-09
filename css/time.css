@@ -1,5 +1,4 @@
-/* time.css */
-/* Основные CSS переменные и стили для визуализатора времени */
+/* time.css - Optimized version */
 :root {
     --primary-color: #FFD700; /* Золотой оттенок */
     --text-color: #fff;
@@ -62,16 +61,29 @@
     padding: 1.5rem;
     text-align: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 12px rgba(255, 215, 0, 0.1);
+    min-height: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
   }
   .stat-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(255, 215, 0, 0.15);
+    box-shadow: 0 10px 20px rgba(255, 215, 0, 0.25);
   }
   .stat-value {
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     color: var(--primary-color);
     margin-bottom: 0.5rem;
-  }
+    font-weight: 500;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    width: 100%;
+    padding: 0 0.5rem;
+    letter-spacing: 0.5px;
+}
   .stat-label {
     font-size: 1rem;
     color: var(--text-color-muted);
@@ -179,10 +191,11 @@
     50% { opacity: 0.5; }
   }
   
-  /* Стили секции космического путешествия */
+  /* Статичное звездное поле вместо анимированного */
   .cosmic-journey {
     margin-top: 3rem;
     text-align: center;
+    margin-bottom: 3rem;
   }
   .cosmic-title {
     font-size: 1.8rem;
@@ -193,7 +206,7 @@
     color: var(--text-color-muted);
     margin-bottom: 2rem;
   }
-  .star-animation {
+  .static-stars-field {
     height: 200px;
     position: relative;
     margin: 2rem 0;
@@ -201,16 +214,27 @@
     border-radius: 8px;
     background: rgba(0, 0, 0, 0.7);
     border: 1px solid rgba(255, 215, 0, 0.3);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
   }
-  .star {
-    position: absolute;
-    background: white;
+  .static-star {
+    width: 6px;
+    height: 6px;
     border-radius: 50%;
-    animation: travel linear infinite;
+    background-color: rgba(255, 255, 255, 0.7);
+    margin: 1.5px;
+    transition: transform 0.3s ease;
   }
-  @keyframes travel {
-    from { transform: translateX(calc(100vw + 10px)); }
-    to { transform: translateX(-10px); }
+  .static-star.past {
+    background-color: #FFD700;
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  }
+  .static-star:hover {
+    transform: scale(1.5);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.7);
   }
   
   /* Стили панели настроек */
@@ -271,10 +295,50 @@
   /* Адаптивные стили */
   @media (max-width: 768px) {
     .stats-container {
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
     }
     .stat-value {
-      font-size: 2rem;
+      font-size: 1.8rem;
+    }
+    .stat-label {
+      font-size: 0.9rem;
+    }
+    .form-actions {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .settings-btn {
+      width: 100%;
+    }
+    .breakdown-item {
+      flex-direction: column;
+      text-align: left;
+    }
+    .breakdown-value {
+      margin-top: 0.25rem;
     }
   }
   
+  @media (max-width: 480px) {
+    .stats-container {
+      grid-template-columns: 1fr;
+    }
+    .time-title {
+      font-size: 2rem;
+    }
+    .cosmic-title {
+      font-size: 1.5rem;
+    }
+    .breakdown-title {
+      font-size: 1.3rem;
+    }
+    .static-stars-field {
+      height: 150px;
+    }
+    .static-star {
+      width: 4px;
+      height: 4px;
+      margin: 1px;
+    }
+  }
