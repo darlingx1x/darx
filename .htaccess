@@ -17,6 +17,8 @@ RewriteRule ^lists/?$ lists.html [L]
 RewriteRule ^cv/?$ cv.html [L]
 RewriteRule ^open-questions/?$ open-questions.html [L]
 RewriteRule ^quotes/?$ quotes.html [L]
+RewriteRule ^project-detail/?$ project-detail.html [L]
+
 
 # HTML5 History API support
 RewriteCond %{REQUEST_FILENAME} !-f
