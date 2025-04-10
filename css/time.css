@@ -1,4 +1,4 @@
-/* time.css - Optimized version */
+/* time.css - Optimized version with modal styles */
 :root {
     --primary-color: #FFD700; /* Золотой оттенок */
     --text-color: #fff;
@@ -212,8 +212,7 @@
     margin-bottom: 2rem;
 }
 
-/* === Обновлённые стили для статичного звездного поля === */
-/* Основной контейнер с равномерным распределением звёзд */
+/* Статичное звездное поле */
 .static-stars-field {
     width: 100%;
     position: relative;
@@ -225,8 +224,6 @@
     padding: 10px;
     box-sizing: border-box;
 }
-
-/* Стили отдельных звёзд */
 .static-star {
     width: 8px;
     height: 8px;
@@ -235,40 +232,58 @@
     transition: transform 0.3s ease;
     display: block;
 }
-
-/* Стили для прожитых месяцев */
 .static-star.past {
     background-color: #FFD700;
     box-shadow: 0 0 7px rgba(255, 215, 0, 0.7);
 }
-
-/* Эффект при наведении на звезду */
 .static-star:hover {
     transform: scale(1.8);
     box-shadow: 0 0 12px rgba(255, 215, 0, 0.8);
     z-index: 5;
 }
 
-/* Адаптивные стили для мобильных устройств */
-@media (max-width: 480px) {
-    .static-stars-field {
-        padding: 8px;
-    }
-    
-    .static-star {
-        width: 5px;
-        height: 5px;
-    }
+/* Стили для модального окна */
+.memory-modal {
+    position: absolute; /* Абсолютное позиционирование */
+    z-index: 100; /* Выше остальных элементов */
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid var(--primary-color);
+    border-radius: 8px;
+    padding: 1rem;
+    transition: opacity 0.2s ease; /* Плавное появление */
+    opacity: 0;
 }
-
-/* Дополнительные стили для поддержки grid-layout */
-@supports (display: grid) {
-    .static-stars-field {
-        display: grid;
-        grid-gap: 4px;
-        justify-content: center;
-        align-content: start;
-    }
+.memory-modal.active {
+    opacity: 1;
+}
+.memory-modal-content {
+    color: var(--text-color);
+    max-width: 300px; /* Ограничение ширины */
+}
+.emotion-selector {
+    margin: 0.5rem 0;
+}
+.emotion-scale {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap; /* Адаптивность для мобильных */
+}
+.emotion {
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    color: var(--text-color);
+}
+.emotion.selected {
+    background: var(--primary-color);
+    color: #000;
+}
+.modal-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
 }
 
 /* Стили для панели настроек */
@@ -326,7 +341,7 @@
     margin-top: 1.5rem;
 }
 
-/* Адаптивные стили */
+/* Адаптивные стили для мобильных устройств */
 @media (max-width: 768px) {
     .stats-container {
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -352,6 +367,12 @@
     .breakdown-value {
         margin-top: 0.25rem;
     }
+    .memory-modal {
+        max-width: 90vw; /* Адаптация ширины для мобильных */
+    }
+    .memory-modal-content {
+        max-width: 100%; /* Полная ширина на мобильных */
+    }
 }
 @media (max-width: 480px) {
     .stats-container {
@@ -365,6 +386,16 @@
     }
     .breakdown-title {
         font-size: 1.3rem;
+    }
+    .static-stars-field {
+        padding: 8px;
+    }
+    .static-star {
+        width: 5px;
+        height: 5px;
+    }
+    .memory-modal {
+        padding: 0.5rem; /* Уменьшенный отступ на мобильных */
     }
 }
 @media (max-width: 480px) and (orientation: portrait) {
