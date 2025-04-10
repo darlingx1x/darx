@@ -363,6 +363,54 @@ function createConstellation() {
     
     lines = new THREE.Line(lineGeometry, lineMaterial);
     scene.add(lines);
+    
+    // Add memory labels
+    memories.forEach(memory => {
+        const x = (memory.position.x - 0.5) * 80;
+        const y = (memory.position.y - 0.5) * 40;
+        const z = memory.position.z * 20 - 10;
+        
+        // Create text sprite for memory title
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 1024; // Doubled canvas width for larger text
+        canvas.height = 256; // Doubled canvas height for larger text
+        
+        // Get emotion color
+        const emotionColor = getEmotionColor(memory.emotion);
+        
+        // Draw text - no background or border
+        context.font = 'bold 120px VT323, monospace'; // Doubled font size for better visibility
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.fillStyle = emotionColor;
+        
+        // Add strong glow effect to make text more visible
+        context.shadowColor = emotionColor;
+        context.shadowBlur = 0; // Increased blur for stronger glow
+        context.shadowOffsetX = 0;
+        context.shadowOffsetY = 0;
+        
+        // Draw text multiple times to enhance the glow effect
+        for (let i = 0; i < 3; i++) {
+            context.fillText(memory.title, canvas.width / 2, canvas.height / 2);
+        }
+        
+        // Create texture
+        const texture = new THREE.CanvasTexture(canvas);
+        const spriteMaterial = new THREE.SpriteMaterial({ 
+            map: texture,
+            transparent: true,
+            opacity: 1.0 // Increased opacity for better visibility
+        });
+        
+        const sprite = new THREE.Sprite(spriteMaterial);
+        sprite.position.set(x, y + 12, z); // Position higher above the star for better separation
+        sprite.scale.set(25, 8, 1); // Significantly increased scale for better visibility
+        sprite.userData = { memoryId: memory.id }; // Store memory ID for interaction
+        scene.add(sprite);
+    });
+    
     console.log('Memory Map: Constellation created with', memories.length, 'memories');
 }
 
@@ -423,27 +471,31 @@ function showMemoryModal(type, buttonElement) {
         existingModal.remove();
     }
     
-    // Get button position for modal placement
-    const buttonRect = buttonElement.getBoundingClientRect();
+    // Get memory container position for modal placement
+    const memoryContainer = document.querySelector('.memory-container');
+    const containerRect = memoryContainer.getBoundingClientRect();
     const modalWidth = 450; // Wider modal for better readability
     
     // Create modal
     const modal = document.createElement('div');
     modal.className = 'memory-modal premium-modal';
     
-    // Position modal relative to the button - below it
+    // Position modal above the memory map
     Object.assign(modal.style, {
         position: 'fixed',
         width: `${modalWidth}px`,
         maxWidth: '90vw',
-        top: `${buttonRect.bottom + 20}px`,
-        left: `${Math.max(20, Math.min(buttonRect.left, window.innerWidth - modalWidth - 20))}px`,
+        top: `${containerRect.top + 50}px`,
+        left: `${Math.max(20, Math.min(containerRect.left + containerRect.width/2 - modalWidth/2, window.innerWidth - modalWidth - 20))}px`,
         zIndex: '9999',
         padding: '25px',
         opacity: '0',
         transform: 'translateY(-10px)',
         transition: 'all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1)'
     });
+    
+    // Prevent scrolling to the modal
+    window.scrollTo(window.scrollX, window.scrollY);
     
     // Set title based on type
     const title = type === 'past' ? 'Capture Memory Fragment' : 'Project Future Aspiration';
@@ -590,27 +642,56 @@ function closeModal(modal) {
     }, 300);
 }
 
-// Обновляем функцию saveMemory, чтобы она вызывала обновление визуализации
+// Updated saveMemory function to immediately update visualization
 function saveMemory(memory) {
     console.log('Saving memory:', memory);
     
     // Load existing memories
-    let memories = loadMemories();
+    let existingMemories = loadMemories();
     
     // Add new memory
-    memories.push(memory);
+    existingMemories.push(memory);
     
     // Save to localStorage
     try {
-        localStorage.setItem('timeMemories', JSON.stringify(memories));
+        localStorage.setItem('timeMemories', JSON.stringify(existingMemories));
         console.log('Memory saved successfully');
+        
+        // Update global memories variable
+        memories = existingMemories;
         
         // Update visualization based on current mode
         if (isThreeAvailable) {
             console.log('Updating 3D visualization');
-            // Обновляем глобальную переменную memories
-            window.memories = memories;
             createConstellation();
+            
+            // Highlight the new memory star with a pulse effect
+            setTimeout(() => {
+                const newStar = scene.children.find(child => 
+                    child.type === 'Sprite' && 
+                    child.userData && 
+                    child.userData.memoryId === memory.id
+                );
+                
+                if (newStar) {
+                    const originalScale = newStar.scale.clone();
+                    const pulseAnimation = () => {
+                        newStar.scale.set(
+                            originalScale.x * 1.2,
+                            originalScale.y * 1.2,
+                            originalScale.z
+                        );
+                        
+                        setTimeout(() => {
+                            newStar.scale.copy(originalScale);
+                        }, 300);
+                    };
+                    
+                    // Pulse twice
+                    pulseAnimation();
+                    setTimeout(pulseAnimation, 600);
+                }
+            }, 100);
         } else {
             console.log('Updating simple visualization');
             updateSimpleMemoryList();
@@ -1034,22 +1115,62 @@ function displayMemoryDetails(memory) {
     }, 10);
 }
 
-// Delete memory
+// Delete memory with immediate visual feedback
 function deleteMemory(id) {
-    let memories = loadMemories();
-    memories = memories.filter(memory => memory.id !== id);
+    // Find the memory to be deleted for visual effect
+    const memoryToDelete = memories.find(memory => memory.id === id);
+    
+    // Update local memories array
+    let updatedMemories = loadMemories();
+    updatedMemories = updatedMemories.filter(memory => memory.id !== id);
     
     try {
-        localStorage.setItem('timeMemories', JSON.stringify(memories));
+        // Save to localStorage
+        localStorage.setItem('timeMemories', JSON.stringify(updatedMemories));
         
-        // Update visualization
-        if (isThreeAvailable) {
+        // Update global memories variable
+        memories = updatedMemories;
+        
+        // If using Three.js, add a fade-out effect before removing
+        if (isThreeAvailable && memoryToDelete) {
+            // Find the star and label to animate
+            const starIndex = memoryToDelete.index;
+            const starSprite = scene.children.find(child => 
+                child.type === 'Sprite' && 
+                child.userData && 
+                child.userData.memoryId === id
+            );
+            
+            // Add fade-out effect if sprite exists
+            if (starSprite) {
+                // Fade out and scale down
+                const fadeOut = () => {
+                    starSprite.material.opacity -= 0.1;
+                    starSprite.scale.multiplyScalar(0.9);
+                    
+                    if (starSprite.material.opacity > 0) {
+                        requestAnimationFrame(fadeOut);
+                    } else {
+                        // Update visualization after fade completes
+                        createConstellation();
+                    }
+                };
+                
+                fadeOut();
+            } else {
+                // If no sprite found, just update
+                createConstellation();
+            }
+        } else if (isThreeAvailable) {
+            // If memory not found but using Three.js
             createConstellation();
         } else {
+            // Simple mode update
             updateSimpleMemoryList();
         }
         
         playSound('close');
+        console.log('Memory deleted successfully');
     } catch (error) {
         console.error('Error deleting memory:', error);
     }
