@@ -364,7 +364,7 @@ function createConstellation() {
     lines = new THREE.Line(lineGeometry, lineMaterial);
     scene.add(lines);
     
-    // Add memory labels
+    // Add memory labels (звёздные названия)
     memories.forEach(memory => {
         const x = (memory.position.x - 0.5) * 80;
         const y = (memory.position.y - 0.5) * 40;
@@ -373,41 +373,42 @@ function createConstellation() {
         // Create text sprite for memory title
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d');
-        canvas.width = 1024; // Doubled canvas width for larger text
-        canvas.height = 256; // Doubled canvas height for larger text
+        canvas.width = 1024; // Увеличенная ширина для более крупного текста
+        canvas.height = 256; // Увеличенная высота для более крупного текста
         
-        // Get emotion color
+        // Очистка canvas (удаляем любой задний фон)
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Получаем цвет в соответствии с эмоцией
         const emotionColor = getEmotionColor(memory.emotion);
         
-        // Draw text - no background or border
-        context.font = 'bold 120px VT323, monospace'; // Doubled font size for better visibility
+        // Отрисовка текста без фона и рамки
+        context.font = 'bold 120px VT323, monospace';
         context.textAlign = 'center';
         context.textBaseline = 'middle';
         context.fillStyle = emotionColor;
         
-        // Add strong glow effect to make text more visible
+        // Добавляем эффект свечения (glow) для улучшенной видимости
         context.shadowColor = emotionColor;
-        context.shadowBlur = 0; // Increased blur for stronger glow
+        context.shadowBlur = 20; // Значительное размытие для свечения
         context.shadowOffsetX = 0;
         context.shadowOffsetY = 0;
         
-        // Draw text multiple times to enhance the glow effect
-        for (let i = 0; i < 3; i++) {
-            context.fillText(memory.title, canvas.width / 2, canvas.height / 2);
-        }
+        // Рисуем текст один раз
+        context.fillText(memory.title, canvas.width / 2, canvas.height / 2);
         
-        // Create texture
+        // Создаём текстуру из canvas
         const texture = new THREE.CanvasTexture(canvas);
         const spriteMaterial = new THREE.SpriteMaterial({ 
             map: texture,
             transparent: true,
-            opacity: 1.0 // Increased opacity for better visibility
+            opacity: 1.0
         });
         
         const sprite = new THREE.Sprite(spriteMaterial);
-        sprite.position.set(x, y + 12, z); // Position higher above the star for better separation
-        sprite.scale.set(25, 8, 1); // Significantly increased scale for better visibility
-        sprite.userData = { memoryId: memory.id }; // Store memory ID for interaction
+        sprite.position.set(x, y + 12, z); // Поднимаем позицию для лучшей видимости
+        sprite.scale.set(25, 8, 1); // Увеличенный масштаб для лучшей читаемости
+        sprite.userData = { memoryId: memory.id }; // Сохраняем ID для обработки событий
         scene.add(sprite);
     });
     
