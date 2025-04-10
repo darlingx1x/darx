@@ -1,134 +1,344 @@
 /**
  * memory-map.js
- * Интерактивная карта воспоминаний и проекций будущего
- * Оптимизировано для мобильных устройств и точного позиционирования модального окна
+ * Премиум-визуализация Memory Constellation с использованием Three.js
+ * Исправлено для корректной инициализации и рендеринга
  */
 
 // Глобальные переменные
-let memoryCanvas;
-let memoryContext;
+let scene, camera, renderer, raycaster, mouse;
 let memories = [];
-let isCanvasInitialized = false;
+let particles, lines;
 let audioContext = null;
+let time = 0;
 
-// Инициализация при загрузке страницы
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Memory Map initializing...');
+// Инициализация после полной загрузки DOM и Three.js
+function initMemoryMap() {
+    console.log('Memory Map: Initializing...');
     
-    memoryCanvas = document.getElementById('memory-map');
-    if (!memoryCanvas) {
-        console.error('Memory map canvas not found!');
+    // Проверка наличия Three.js
+    if (typeof THREE === 'undefined') {
+        console.error('Memory Map: Three.js is not loaded!');
         return;
     }
     
-    memoryContext = memoryCanvas.getContext('2d');
-    if (!memoryContext) {
-        console.error('Failed to get 2D context!');
+    // Проверка наличия canvas
+    const canvas = document.getElementById('memory-map');
+    if (!canvas) {
+        console.error('Memory Map: Canvas element with id "memory-map" not found!');
         return;
     }
     
-    resizeCanvas();
-    window.addEventListener('resize', resizeCanvas);
+    // Настройка сцены Three.js
+    setupScene();
+    
+    // Загрузка воспоминаний
     loadMemories();
+    
+    // Создание визуализации
+    createConstellation();
+    
+    // Настройка обработчиков кнопок
     setupButtonHandlers();
-    drawMemoryMap();
-    isCanvasInitialized = true;
-    console.log('Memory Map initialized successfully!');
-});
+    
+    // Анимация
+    animate();
+    
+    // Обработчики событий
+    window.addEventListener('resize', onWindowResize);
+    canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('click', onMouseClick);
+    console.log('Memory Map: Initialized successfully!');
+}
 
-// Установка размеров canvas
-function resizeCanvas() {
-    if (!memoryCanvas) return;
-    const container = memoryCanvas.parentElement;
-    if (!container) return;
+// Настройка сцены Three.js
+function setupScene() {
+    const container = document.getElementById('memory-map');
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+    renderer = new THREE.WebGLRenderer({ canvas: container, alpha: true, antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    
+    camera.position.set(0, 10, 50);
+    camera.lookAt(0, 0, 0);
+    
+    raycaster = new THREE.Raycaster();
+    mouse = new THREE.Vector2();
+    console.log('Memory Map: Scene setup completed');
+}
+
+// Создание созвездия
+function createConstellation() {
+    if (!memories.length) {
+        memories = loadMemories();
+        if (!memories.length) {
+            console.log('Memory Map: No memories to display');
+            return;
+        }
+    }
+    
+    // Ограничение количества частиц для производительности
+    if (memories.length > 50) {
+        console.warn('Memory Map: Too many memories, limiting to 50 for performance');
+        memories = memories.slice(0, 50);
+    }
+    
+    // Очистка сцены
+    while (scene.children.length > 0) {
+        scene.remove(scene.children[0]);
+    }
+    
+    // Создание частиц (воспоминаний)
+    const positions = [];
+    const colors = [];
+    const sizes = [];
+    const emotionColors = {
+        'joy': new THREE.Color(0xFFD700),
+        'reflection': new THREE.Color(0x87CEEB),
+        'aspiration': new THREE.Color(0x9370DB),
+        'sublime': new THREE.Color(0x00FA9A)
+    };
+    
+    memories.forEach((memory, i) => {
+        const x = (memory.position.x - 0.5) * 80;
+        const y = (memory.position.y - 0.5) * 40;
+        const z = memory.position.z * 20 - 10;
+        positions.push(x, y, z);
+        const color = emotionColors[memory.emotion] || new THREE.Color(0xFFFFFF);
+        colors.push(color.r, color.g, color.b);
+        sizes.push(2 + Math.random());
+        memory.index = i;
+    });
+    
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+    
+    const material = new THREE.ShaderMaterial({
+        uniforms: {
+            time: { value: 0 }
+        },
+        vertexShader: `
+            attribute float size;
+            varying vec3 vColor;
+            uniform float time;
+            void main() {
+                vColor = color;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_PointSize = size * (300.0 / -mvPosition.z) * (1.0 + sin(time + position.x) * 0.5);
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `,
+        fragmentShader: `
+            varying vec3 vColor;
+            void main() {
+                float r = length(gl_PointCoord - vec2(0.5));
+                if (r > 0.5) discard;
+                gl_FragColor = vec4(vColor, 1.0 - r * 2.0);
+            }
+        `,
+        transparent: true,
+        vertexColors: true
+    });
+    
+    particles = new THREE.Points(geometry, material);
+    scene.add(particles);
+    
+    // Создание линий
+    const linePositions = [];
+    const sortedMemories = [...memories].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    sortedMemories.forEach(memory => {
+        const x = (memory.position.x - 0.5) * 80;
+        const y = (memory.position.y - 0.5) * 40;
+        const z = memory.position.z * 20 - 10;
+        linePositions.push(x, y, z);
+    });
+    
+    const lineGeometry = new THREE.BufferGeometry();
+    lineGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+    
+    const lineMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+            time: { value: 0 }
+        },
+        vertexShader: `
+            varying float vDistance;
+            void main() {
+                vDistance = position.x;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        `,
+        fragmentShader: `
+            uniform float time;
+            varying float vDistance;
+            void main() {
+                float alpha = sin(vDistance * 0.1 + time) * 0.5 + 0.5;
+                gl_FragColor = vec4(1.0, 0.84, 0.0, alpha * 0.3);
+            }
+        `,
+        transparent: true
+    });
+    
+    lines = new THREE.Line(lineGeometry, lineMaterial);
+    scene.add(lines);
+    console.log('Memory Map: Constellation created with', memories.length, 'memories');
+}
+
+// Обработка изменения размера окна
+function onWindowResize() {
+    const container = document.getElementById('memory-map');
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    console.log('Memory Map: Window resized');
+}
+
+// Обработка движения мыши
+function onMouseMove(event) {
+    const container = document.getElementById('memory-map');
     const rect = container.getBoundingClientRect();
-    memoryCanvas.width = rect.width;
-    memoryCanvas.height = rect.height;
-    if (isCanvasInitialized) drawMemoryMap();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObject(particles);
+    
+    if (intersects.length > 0) {
+        const index = intersects[0].index;
+        const memory = memories[index];
+        showTooltip(memory, event.clientX, event.clientY);
+    } else {
+        hideTooltip();
+    }
+}
+
+// Обработка клика
+function onMouseClick(event) {
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObject(particles);
+    if (intersects.length > 0) {
+        const index = intersects[0].index;
+        const memory = memories[index];
+        alert(`${memory.title}\n${memory.description}\nEmotion: ${memory.emotion}`);
+    }
+}
+
+// Показ всплывающей подсказки
+function showTooltip(memory, x, y) {
+    let tooltip = document.querySelector('.memory-tooltip');
+    if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.className = 'memory-tooltip';
+        document.body.appendChild(tooltip);
+    }
+    tooltip.innerHTML = `
+        <strong>${memory.title}</strong><br>
+        ${memory.type === 'past' ? '◄' : '►'} ${memory.emotion}
+    `;
+    tooltip.style.position = 'absolute';
+    tooltip.style.background = 'rgba(0, 0, 0, 0.8)';
+    tooltip.style.color = 'var(--primary-color)';
+    tooltip.style.padding = '0.5rem';
+    tooltip.style.borderRadius = '4px';
+    tooltip.style.border = '1px solid var(--primary-color)';
+    tooltip.style.left = `${x + 10}px`;
+    tooltip.style.top = `${y + 10}px`;
+    tooltip.style.zIndex = '101';
+}
+
+// Скрытие всплывающей подсказки
+function hideTooltip() {
+    const tooltip = document.querySelector('.memory-tooltip');
+    if (tooltip) tooltip.remove();
+}
+
+// Анимация с плавным вращением камеры
+function animate() {
+    requestAnimationFrame(animate);
+    
+    time += 0.01;
+    if (particles) particles.material.uniforms.time.value = time;
+    if (lines) lines.material.uniforms.time.value = time;
+    
+    camera.position.x = Math.sin(time * 0.1) * 50;
+    camera.position.z = Math.cos(time * 0.1) * 50;
+    camera.position.y = 10 + Math.sin(time * 0.05) * 5;
+    camera.lookAt(0, 0, 0);
+    
+    renderer.render(scene, camera);
 }
 
 // Настройка обработчиков кнопок
 function setupButtonHandlers() {
+    console.log('Setting up button handlers...');
     const addMemoryBtn = document.getElementById('add-memory-btn');
     const projectBtn = document.getElementById('project-btn');
     
     if (addMemoryBtn) {
-        console.log('Setting up memory button handler');
-        addMemoryBtn.addEventListener('click', () => showMemoryModal('past'));
+        console.log('Add memory button found, adding event listener');
+        addMemoryBtn.addEventListener('click', function() {
+            console.log('Add memory button clicked');
+            showMemoryModal('past');
+        });
     } else {
-        console.error('Add memory button not found!');
+        console.error('Memory Map: Add memory button not found!');
     }
     
     if (projectBtn) {
-        console.log('Setting up project button handler');
-        projectBtn.addEventListener('click', () => showMemoryModal('future'));
+        console.log('Project button found, adding event listener');
+        projectBtn.addEventListener('click', function() {
+            console.log('Project button clicked');
+            showMemoryModal('future');
+        });
     } else {
-        console.error('Project button not found!');
+        console.error('Memory Map: Project button not found!');
     }
 }
 
 // Отображение модального окна
 function showMemoryModal(type) {
-    console.log(`Showing memory modal for type: ${type}`);
+    console.log(`Memory Map: Showing memory modal for type: ${type}`);
     
-    let modal = document.querySelector('.memory-modal');
-    const triggerBtn = document.getElementById('add-memory-btn'); // Кнопка-триггер
-    
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.className = 'memory-modal';
-        const title = type === 'past' ? 'Capture Memory Fragment' : 'Project Future Aspiration';
-        modal.innerHTML = `
-            <div class="memory-modal-content">
-                <h4>${title}</h4>
-                <input type="text" id="memory-title" placeholder="Title" autocomplete="off">
-                <textarea id="memory-desc" placeholder="Description"></textarea>
-                <div class="emotion-selector">
-                    <span>Emotional signature:</span>
-                    <div class="emotion-scale">
-                        <span data-value="joy" class="emotion">Joy</span>
-                        <span data-value="reflection" class="emotion">Reflection</span>
-                        <span data-value="aspiration" class="emotion">Aspiration</span>
-                        <span data-value="sublime" class="emotion">Sublime</span>
-                    </div>
-                </div>
-                <div class="modal-actions">
-                    <button id="cancel-memory">Cancel</button>
-                    <button id="save-memory">Crystallize</button>
-                </div>
-                <input type="hidden" id="memory-type" value="${type}">
-            </div>
-        `;
-        document.body.appendChild(modal);
-    } else {
-        const title = type === 'past' ? 'Capture Memory Fragment' : 'Project Future Aspiration';
-        modal.querySelector('h4').textContent = title;
-        modal.querySelector('#memory-type').value = type;
-        modal.querySelector('#memory-title').value = '';
-        modal.querySelector('#memory-desc').value = '';
-        modal.querySelectorAll('.emotion').forEach(emotion => emotion.classList.remove('selected'));
+    // Удаляем существующее модальное окно, если оно есть
+    let existingModal = document.querySelector('.memory-modal');
+    if (existingModal) {
+        existingModal.remove();
     }
-
-    // Позиционирование модального окна
-    const rect = triggerBtn.getBoundingClientRect();
-    const modalWidth = modal.offsetWidth || 300; // Предполагаем ширину, если еще не отрендерено
-    const modalHeight = modal.offsetHeight || 200; // Предполагаем высоту
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-
-    let top = rect.bottom + window.scrollY; // Под кнопкой
-    let left = rect.left + window.scrollX; // Слева от кнопки
-
-    // Корректировка для границ экрана
-    if (left + modalWidth > viewportWidth) left = viewportWidth - modalWidth - 10;
-    if (top + modalHeight > viewportHeight + window.scrollY) top = rect.top + window.scrollY - modalHeight - 10;
-    if (left < 0) left = 10;
-    if (top < window.scrollY) top = window.scrollY + 10;
-
-    modal.style.top = `${top}px`;
-    modal.style.left = `${left}px`;
-
+    
+    // Создаем новое модальное окно
+    const modal = document.createElement('div');
+    modal.className = 'memory-modal';
+    
+    const title = type === 'past' ? 'Capture Memory Fragment' : 'Project Future Aspiration';
+    modal.innerHTML = `
+        <div class="memory-modal-content">
+            <h4>${title}</h4>
+            <input type="text" id="memory-title" placeholder="Title" autocomplete="off">
+            <textarea id="memory-desc" placeholder="Description"></textarea>
+            <div class="emotion-selector">
+                <span>Emotional signature:</span>
+                <div class="emotion-scale">
+                    <span data-value="joy" class="emotion">Joy</span>
+                    <span data-value="reflection" class="emotion">Reflection</span>
+                    <span data-value="aspiration" class="emotion">Aspiration</span>
+                    <span data-value="sublime" class="emotion">Sublime</span>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-memory">Cancel</button>
+                <button id="save-memory">Crystallize</button>
+            </div>
+            <input type="hidden" id="memory-type" value="${type}">
+        </div>
+    `;
+    
+    // Добавляем модальное окно в DOM
+    document.body.appendChild(modal);
+    
+    // Настраиваем обработчики для модального окна
     setupModalHandlers(modal);
+    
+    // Делаем модальное окно видимым после добавления в DOM
     setTimeout(() => {
         modal.classList.add('active');
         playSound('open');
@@ -194,95 +404,32 @@ function saveMemory(memory) {
     memories = loadMemories();
     memories.push(memory);
     localStorage.setItem('timeMemories', JSON.stringify(memories));
-    drawMemoryMap();
+    createConstellation();
+    console.log('Memory Map: Memory saved', memory);
 }
 
 // Загрузка воспоминаний
 function loadMemories() {
     try {
         const stored = localStorage.getItem('timeMemories');
-        memories = stored ? JSON.parse(stored) : [];
-        return memories;
+        return stored ? JSON.parse(stored) : [];
     } catch (error) {
-        console.error('Error loading memories:', error);
+        console.error('Memory Map: Error loading memories:', error);
         return [];
     }
-}
-
-// Рисование карты
-function drawMemoryMap() {
-    if (!memoryContext || !memoryCanvas) return;
-    if (!memories.length) memories = loadMemories();
-    memoryContext.clearRect(0, 0, memoryCanvas.width, memoryCanvas.height);
-    if (!memories.length) return drawPlaceholder();
-    drawConnectionLines();
-    drawMemoryPoints();
-}
-
-// Placeholder для пустой карты
-function drawPlaceholder() {
-    memoryContext.font = '20px VT323, monospace';
-    memoryContext.fillStyle = '#FFD700';
-    memoryContext.textAlign = 'center';
-    memoryContext.textBaseline = 'middle';
-    memoryContext.fillText('No memories captured yet', memoryCanvas.width / 2, memoryCanvas.height / 2 - 15);
-    memoryContext.fillText('Use the buttons below to start', memoryCanvas.width / 2, memoryCanvas.height / 2 + 15);
-}
-
-// Соединительные линии
-function drawConnectionLines() {
-    const sortedMemories = [...memories].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    memoryContext.beginPath();
-    let firstPoint = true;
-    sortedMemories.forEach(memory => {
-        const x = memory.position.x * memoryCanvas.width;
-        const y = memory.position.y * memoryCanvas.height;
-        firstPoint ? memoryContext.moveTo(x, y) : memoryContext.lineTo(x, y);
-        firstPoint = false;
-    });
-    memoryContext.strokeStyle = 'rgba(255, 215, 0, 0.3)';
-    memoryContext.lineWidth = 1;
-    memoryContext.stroke();
-}
-
-// Точки воспоминаний
-function drawMemoryPoints() {
-    memories.forEach(memory => {
-        const x = memory.position.x * memoryCanvas.width;
-        const y = memory.position.y * memoryCanvas.height;
-        const color = {
-            'joy': '#FFD700',
-            'reflection': '#87CEEB',
-            'aspiration': '#9370DB',
-            'sublime': '#00FA9A'
-        }[memory.emotion] || '#FFFFFF';
-        
-        const gradient = memoryContext.createRadialGradient(x, y, 0, x, y, 15);
-        gradient.addColorStop(0, color);
-        gradient.addColorStop(1, 'rgba(0,0,0,0)');
-        memoryContext.fillStyle = gradient;
-        memoryContext.beginPath();
-        memoryContext.arc(x, y, 15, 0, Math.PI * 2);
-        memoryContext.fill();
-        
-        memoryContext.fillStyle = color;
-        memoryContext.beginPath();
-        memoryContext.arc(x, y, 4, 0, Math.PI * 2);
-        memoryContext.fill();
-        
-        memoryContext.font = '12px VT323, monospace';
-        memoryContext.fillStyle = '#FFFFFF';
-        memoryContext.textAlign = 'center';
-        memoryContext.fillText(memory.title, x, y - 15);
-        memoryContext.fillText(memory.type === 'past' ? '◄' : '►', x, y + 15);
-    });
 }
 
 // Звуковые эффекты
 function playSound(type) {
     if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        try {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+            console.error('Web Audio API is not supported in this browser');
+            return;
+        }
     }
+    
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
     oscillator.connect(gain);
@@ -314,13 +461,17 @@ function clearAllMemories() {
     if (confirm('Are you sure you want to delete all memories?')) {
         localStorage.removeItem('timeMemories');
         memories = [];
-        drawMemoryMap();
+        createConstellation();
+        console.log('Memory Map: All memories cleared');
     }
 }
 
 // Экспорт функций
 window.MemoryMap = {
-    initialize: () => { loadMemories(); drawMemoryMap(); },
+    initialize: () => { loadMemories(); createConstellation(); },
     addMemory: type => showMemoryModal(type),
     clearMemories: clearAllMemories
 };
+
+// Экспорт функции инициализации для глобального доступа
+window.initMemoryMap = initMemoryMap;
