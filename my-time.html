@@ -43,6 +43,110 @@
       z-index: 10;
     }
     
+    /* Стили для модального окна */
+    .memory-modal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.9);
+      border: 1px solid var(--primary-color);
+      border-radius: 8px;
+      padding: 1rem;
+      transition: opacity 0.2s ease;
+      opacity: 0;
+      width: 80%;
+      max-width: 400px;
+    }
+    
+    .memory-modal.active {
+      opacity: 1;
+    }
+    
+    .memory-modal-content {
+      color: var(--text-color);
+    }
+    
+    .memory-modal-content h4 {
+      color: var(--primary-color);
+      margin-top: 0;
+      font-family: 'VT323', monospace;
+      text-align: center;
+    }
+    
+    .memory-modal-content input[type="text"],
+    .memory-modal-content textarea {
+      width: 100%;
+      padding: 0.5rem;
+      background: rgba(30, 30, 30, 0.9);
+      border: 1px solid var(--primary-color);
+      border-radius: 4px;
+      color: var(--primary-color);
+      font-family: 'VT323', monospace;
+      margin-bottom: 10px;
+    }
+    
+    .memory-modal-content textarea {
+      height: 100px;
+      resize: vertical;
+    }
+    
+    .emotion-selector {
+      margin: 0.5rem 0;
+    }
+    
+    .emotion-selector span {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-color);
+    }
+    
+    .emotion-scale {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-top: 5px;
+    }
+    
+    .emotion {
+      cursor: pointer;
+      padding: 0.2rem 0.5rem;
+      border: 1px solid var(--primary-color);
+      border-radius: 4px;
+      color: var(--text-color);
+      font-family: 'VT323', monospace;
+    }
+    
+    .emotion.selected {
+      background: var(--primary-color);
+      color: #000;
+    }
+    
+    .modal-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+      margin-top: 1rem;
+    }
+    
+    .modal-actions button {
+      background: transparent;
+      border: 1px solid var(--primary-color);
+      color: var(--primary-color);
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'VT323', monospace;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    .modal-actions button:hover {
+      background: rgba(255, 215, 0, 0.1);
+      transform: translateY(-2px);
+    }
+    
     /* Mobile responsive styles */
     @media screen and (max-width: 768px) {
       .attribution {
@@ -181,6 +285,9 @@
                 <button id="project-btn" class="settings-btn">Project Future</button>
               </div>
             </div>
+            <div id="memory-map-fallback" style="display: none;">
+              <p>Memory constellation requires Three.js to function. Using simplified version.</p>
+            </div>
           </div>
           
           <!-- Настройки пользователя -->
@@ -228,8 +335,8 @@
   </main>
   
   <!-- JavaScript Libraries -->
-  <!-- Подключаем локальную копию Three.js -->
-  <script src="js/three.min.js" onerror="console.error('Failed to load Three.js from local path!')"></script>
+  <!-- Подключаем Three.js из CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
   
   <!-- Подключение скриптов -->
@@ -237,71 +344,86 @@
   <script defer src="js/time.js"></script>
   <script defer src="js/memory-map.js"></script>
   
-  <!-- Скрипт создания вселенной -->
-  <script defer>
-    window.onload = function() {
-      if (typeof THREE === 'undefined') {
-        console.error('Three.js failed to load!');
-        return;
-      }
-      
-      // Initialize memory map after Three.js is loaded
-      if (typeof initMemoryMap === 'function') {
-        initMemoryMap();
-      } else {
-        console.error('Memory map initialization function not found!');
-      }
+  <!-- Встроенный скрипт для прямой работы с кнопками -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Direct handlers initializing...');
 
-      class StarryBackground {
-        constructor() {
-          this.scene = new THREE.Scene();
-          this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-          this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-          this.setupRenderer();
-          this.createUniverseBackground();
-          this.setupEventListeners();
-          this.animate();
+      function setupDirectHandlers() {
+        const addMemoryBtn = document.getElementById('add-memory-btn');
+        const projectBtn = document.getElementById('project-btn');
+
+        if (addMemoryBtn) {
+          addMemoryBtn.onclick = function() {
+            console.log('Capture Memory button clicked');
+            showMemoryModal('past');
+          };
+          console.log('Handler set for Capture Memory button');
         }
 
-        setupRenderer() {
-          this.renderer.setSize(window.innerWidth, window.innerHeight);
-          document.getElementById('universe-container').appendChild(this.renderer.domElement);
-          this.camera.position.z = 50;
-        }
-
-        createUniverseBackground() {
-          const starsGeometry = new THREE.BufferGeometry();
-          const starsMaterial = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.5, opacity: 0.7 });
-          const starsVertices = [];
-          for (let i = 0; i < 5000; i++) {
-            const x = THREE.MathUtils.randFloatSpread(2000);
-            const y = THREE.MathUtils.randFloatSpread(2000);
-            const z = THREE.MathUtils.randFloatSpread(2000);
-            starsVertices.push(x, y, z);
-          }
-          starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
-          const starField = new THREE.Points(starsGeometry, starsMaterial);
-          this.scene.add(starField);
-        }
-
-        setupEventListeners() {
-          window.addEventListener('resize', this.onWindowResize.bind(this));
-        }
-
-        onWindowResize() {
-          this.camera.aspect = window.innerWidth / window.innerHeight;
-          this.camera.updateProjectionMatrix();
-          this.renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        animate() {
-          requestAnimationFrame(this.animate.bind(this));
-          this.renderer.render(this.scene, this.camera);
+        if (projectBtn) {
+          projectBtn.onclick = function() {
+            console.log('Project Future button clicked');
+            showMemoryModal('future');
+          };
+          console.log('Handler set for Project Future button');
         }
       }
 
-      new StarryBackground();
-    };
+      function showMemoryModal(type) {
+        console.log('Showing memory modal for ' + type);
+
+        let existingModal = document.querySelector('.memory-modal');
+        if (existingModal) {
+          existingModal.remove();
+        }
+
+        const modal = document.createElement('div');
+        modal.className = 'memory-modal';
+        
+        const title = type === 'past' ? 'Capture Memory Fragment' : 'Project Future Aspiration';
+        modal.innerHTML = `
+          <div class="memory-modal-content">
+            <h4>${title}</h4>
+            <input type="text" id="memory-title" placeholder="Title" autocomplete="off">
+            <textarea id="memory-desc" placeholder="Description"></textarea>
+            <div class="emotion-selector">
+              <span>Emotional signature:</span>
+              <div class="emotion-scale">
+                <div class="emotion" data-value="1">😞</div>
+                <div class="emotion" data-value="2">😟</div>
+                <div class="emotion" data-value="3">😐</div>
+                <div class="emotion" data-value="4">🙂</div>
+                <div class="emotion" data-value="5">😊</div>
+              </div>
+            </div>
+            <div class="modal-actions">
+              <button id="cancel-memory">Cancel</button>
+              <button id="save-memory">Save</button>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+
+        document.getElementById('cancel-memory').onclick = function() {
+          modal.remove();
+        };
+
+        document.getElementById('save-memory').onclick = function() {
+          console.log('Save button clicked');
+          // Здесь можно добавить обработку сохранения данных памяти
+          modal.remove();
+        };
+
+        // Пример плавного появления модального окна
+        setTimeout(() => {
+          modal.classList.add('active');
+        }, 10);
+      }
+
+      setupDirectHandlers();
+    });
   </script>
 </body>
 </html>

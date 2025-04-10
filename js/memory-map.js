@@ -10,6 +10,8 @@ let memories = [];
 let particles, lines;
 let audioContext = null;
 let time = 0;
+let isThreeAvailable = false;
+let buttonHandlersInitialized = false;
 
 // Инициализация после полной загрузки DOM и Three.js
 function initMemoryMap() {
@@ -18,8 +20,11 @@ function initMemoryMap() {
     // Проверка наличия Three.js
     if (typeof THREE === 'undefined') {
         console.error('Memory Map: Three.js is not loaded!');
+        initSimpleMemoryMap();
         return;
     }
+    
+    isThreeAvailable = true;
     
     // Проверка наличия canvas
     const canvas = document.getElementById('memory-map');
@@ -29,25 +34,191 @@ function initMemoryMap() {
     }
     
     // Настройка сцены Three.js
-    setupScene();
+    try {
+        setupScene();
+        
+        // Загрузка воспоминаний
+        loadMemories();
+        
+        // Создание визуализации
+        createConstellation();
+        
+        // Настройка обработчиков кнопок - избегаем дублирования
+        if (!buttonHandlersInitialized) {
+            setupButtonHandlers();
+            buttonHandlersInitialized = true;
+        }
+        
+        // Анимация
+        animate();
+        
+        // Обработчики событий
+        window.addEventListener('resize', onWindowResize);
+        canvas.addEventListener('mousemove', onMouseMove);
+        canvas.addEventListener('click', onMouseClick);
+        console.log('Memory Map: Initialized successfully!');
+    } catch (error) {
+        console.error('Memory Map: Error initializing 3D mode:', error);
+        initSimpleMemoryMap();
+    }
+}
+
+// Инициализация упрощенной версии карты памяти (без Three.js)
+function initSimpleMemoryMap() {
+    console.log('Memory Map: Initializing simple mode...');
     
-    // Загрузка воспоминаний
-    loadMemories();
+    // Показываем запасной div
+    const fallbackDiv = document.getElementById('memory-map-fallback');
+    if (fallbackDiv) {
+        fallbackDiv.style.display = 'block';
+    }
     
-    // Создание визуализации
-    createConstellation();
+    // Скрываем canvas
+    const canvas = document.getElementById('memory-map');
+    if (canvas) {
+        canvas.style.display = 'none';
+    }
     
-    // Настройка обработчиков кнопок
-    setupButtonHandlers();
+    // Загружаем воспоминания
+    memories = loadMemories();
     
-    // Анимация
-    animate();
+    // Создаем упрощенный интерфейс
+    createSimpleMemoryInterface();
     
-    // Обработчики событий
-    window.addEventListener('resize', onWindowResize);
-    canvas.addEventListener('mousemove', onMouseMove);
-    canvas.addEventListener('click', onMouseClick);
-    console.log('Memory Map: Initialized successfully!');
+    // Настраиваем обработчики кнопок - избегаем дублирования
+    if (!buttonHandlersInitialized) {
+        setupSimpleButtonHandlers();
+        buttonHandlersInitialized = true;
+    }
+    
+    console.log('Memory Map: Simple mode initialized successfully!');
+}
+
+// Создание упрощенного интерфейса для мемори-консоли
+function createSimpleMemoryInterface() {
+    const container = document.querySelector('.memory-container');
+    if (!container) return;
+    
+    // Проверяем, не создан ли уже интерфейс
+    if (container.querySelector('#simple-memory-list')) {
+        console.log('Simple memory interface already exists');
+        return;
+    }
+    
+    // Создаем простой список воспоминаний
+    const memoryList = document.createElement('div');
+    memoryList.id = 'simple-memory-list';
+    memoryList.style.width = '100%';
+    memoryList.style.height = '300px';
+    memoryList.style.overflowY = 'auto';
+    memoryList.style.background = 'rgba(0, 0, 0, 0.5)';
+    memoryList.style.borderRadius = '8px';
+    memoryList.style.padding = '10px';
+    memoryList.style.border = '1px solid var(--primary-color)';
+    memoryList.style.marginBottom = '15px';
+    
+    // Добавляем заголовок
+    const listHeader = document.createElement('h4');
+    listHeader.textContent = 'Your Memory Timeline';
+    listHeader.style.color = 'var(--primary-color)';
+    listHeader.style.fontFamily = '"VT323", monospace';
+    listHeader.style.textAlign = 'center';
+    listHeader.style.marginBottom = '15px';
+    memoryList.appendChild(listHeader);
+    
+    // Вставляем список перед элементом controls
+    const controls = container.querySelector('.memory-controls');
+    if (controls) {
+        container.insertBefore(memoryList, controls);
+    } else {
+        container.appendChild(memoryList);
+    }
+    
+    // Обновляем список воспоминаний
+    updateSimpleMemoryList();
+}
+
+// Обновление упрощенного списка воспоминаний
+function updateSimpleMemoryList() {
+    const memoryList = document.getElementById('simple-memory-list');
+    if (!memoryList) return;
+    
+    // Очищаем текущий список
+    while (memoryList.children.length > 1) { // Оставляем заголовок
+        memoryList.removeChild(memoryList.lastChild);
+    }
+    
+    // Сортируем воспоминания по времени
+    const sortedMemories = [...memories].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    
+    // Если список пуст, показываем сообщение
+    if (sortedMemories.length === 0) {
+        const emptyMessage = document.createElement('p');
+        emptyMessage.textContent = 'No memories captured yet. Use the buttons below to add your first memory.';
+        emptyMessage.style.color = 'var(--text-color-muted)';
+        emptyMessage.style.textAlign = 'center';
+        emptyMessage.style.padding = '20px';
+        memoryList.appendChild(emptyMessage);
+        return;
+    }
+    
+    // Добавляем каждое воспоминание в список
+    sortedMemories.forEach(memory => {
+        const memoryItem = document.createElement('div');
+        memoryItem.className = 'simple-memory-item';
+        memoryItem.style.padding = '10px';
+        memoryItem.style.marginBottom = '10px';
+        memoryItem.style.borderRadius = '4px';
+        memoryItem.style.background = 'rgba(30, 30, 30, 0.5)';
+        memoryItem.style.borderLeft = `4px solid ${getEmotionColor(memory.emotion)}`;
+        
+        // Заголовок воспоминания
+        const titleElement = document.createElement('h5');
+        titleElement.textContent = memory.title;
+        titleElement.style.margin = '0 0 5px 0';
+        titleElement.style.color = 'var(--primary-color)';
+        titleElement.style.fontFamily = '"VT323", monospace';
+        memoryItem.appendChild(titleElement);
+        
+        // Тип воспоминания (прошлое/будущее)
+        const typeElement = document.createElement('span');
+        typeElement.textContent = memory.type === 'past' ? '◄ Past' : '► Future';
+        typeElement.style.fontSize = '0.8em';
+        typeElement.style.color = memory.type === 'past' ? '#87CEEB' : '#9370DB';
+        typeElement.style.marginRight = '10px';
+        memoryItem.appendChild(typeElement);
+        
+        // Эмоция
+        const emotionElement = document.createElement('span');
+        emotionElement.textContent = `Emotion: ${memory.emotion}`;
+        emotionElement.style.fontSize = '0.8em';
+        emotionElement.style.color = 'var(--text-color-muted)';
+        memoryItem.appendChild(emotionElement);
+        
+        // Описание (если есть)
+        if (memory.description) {
+            const descElement = document.createElement('p');
+            descElement.textContent = memory.description;
+            descElement.style.margin = '5px 0 0 0';
+            descElement.style.fontSize = '0.9em';
+            descElement.style.color = 'var(--text-color)';
+            memoryItem.appendChild(descElement);
+        }
+        
+        // Добавляем в список
+        memoryList.appendChild(memoryItem);
+    });
+}
+
+// Получение цвета для эмоции
+function getEmotionColor(emotion) {
+    const colors = {
+        'joy': '#FFD700',
+        'reflection': '#87CEEB',
+        'aspiration': '#9370DB',
+        'sublime': '#00FA9A'
+    };
+    return colors[emotion] || '#FFFFFF';
 }
 
 // Настройка сцены Three.js
@@ -68,6 +239,10 @@ function setupScene() {
 
 // Создание созвездия
 function createConstellation() {
+    if (!isThreeAvailable) {
+        return;
+    }
+    
     if (!memories.length) {
         memories = loadMemories();
         if (!memories.length) {
@@ -80,6 +255,12 @@ function createConstellation() {
     if (memories.length > 50) {
         console.warn('Memory Map: Too many memories, limiting to 50 for performance');
         memories = memories.slice(0, 50);
+    }
+    
+    // Проверка существования сцены
+    if (!scene) {
+        console.error('Memory Map: Scene is not initialized');
+        return;
     }
     
     // Очистка сцены
@@ -184,114 +365,89 @@ function createConstellation() {
     console.log('Memory Map: Constellation created with', memories.length, 'memories');
 }
 
-// Обработка изменения размера окна
-function onWindowResize() {
-    const container = document.getElementById('memory-map');
-    camera.aspect = container.clientWidth / container.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    console.log('Memory Map: Window resized');
-}
-
-// Обработка движения мыши
-function onMouseMove(event) {
-    const container = document.getElementById('memory-map');
-    const rect = container.getBoundingClientRect();
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObject(particles);
-    
-    if (intersects.length > 0) {
-        const index = intersects[0].index;
-        const memory = memories[index];
-        showTooltip(memory, event.clientX, event.clientY);
-    } else {
-        hideTooltip();
-    }
-}
-
-// Обработка клика
-function onMouseClick(event) {
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObject(particles);
-    if (intersects.length > 0) {
-        const index = intersects[0].index;
-        const memory = memories[index];
-        alert(`${memory.title}\n${memory.description}\nEmotion: ${memory.emotion}`);
-    }
-}
-
-// Показ всплывающей подсказки
-function showTooltip(memory, x, y) {
-    let tooltip = document.querySelector('.memory-tooltip');
-    if (!tooltip) {
-        tooltip = document.createElement('div');
-        tooltip.className = 'memory-tooltip';
-        document.body.appendChild(tooltip);
-    }
-    tooltip.innerHTML = `
-        <strong>${memory.title}</strong><br>
-        ${memory.type === 'past' ? '◄' : '►'} ${memory.emotion}
-    `;
-    tooltip.style.position = 'absolute';
-    tooltip.style.background = 'rgba(0, 0, 0, 0.8)';
-    tooltip.style.color = 'var(--primary-color)';
-    tooltip.style.padding = '0.5rem';
-    tooltip.style.borderRadius = '4px';
-    tooltip.style.border = '1px solid var(--primary-color)';
-    tooltip.style.left = `${x + 10}px`;
-    tooltip.style.top = `${y + 10}px`;
-    tooltip.style.zIndex = '101';
-}
-
-// Скрытие всплывающей подсказки
-function hideTooltip() {
-    const tooltip = document.querySelector('.memory-tooltip');
-    if (tooltip) tooltip.remove();
-}
-
-// Анимация с плавным вращением камеры
-function animate() {
-    requestAnimationFrame(animate);
-    
-    time += 0.01;
-    if (particles) particles.material.uniforms.time.value = time;
-    if (lines) lines.material.uniforms.time.value = time;
-    
-    camera.position.x = Math.sin(time * 0.1) * 50;
-    camera.position.z = Math.cos(time * 0.1) * 50;
-    camera.position.y = 10 + Math.sin(time * 0.05) * 5;
-    camera.lookAt(0, 0, 0);
-    
-    renderer.render(scene, camera);
-}
-
 // Настройка обработчиков кнопок
 function setupButtonHandlers() {
     console.log('Setting up button handlers...');
+    
+    // Очищаем старые обработчики, заменяя элементы
     const addMemoryBtn = document.getElementById('add-memory-btn');
     const projectBtn = document.getElementById('project-btn');
     
     if (addMemoryBtn) {
-        console.log('Add memory button found, adding event listener');
-        addMemoryBtn.addEventListener('click', function() {
+        // Клонируем кнопку, чтобы удалить все обработчики событий
+        const newAddMemoryBtn = addMemoryBtn.cloneNode(true);
+        if (addMemoryBtn.parentNode) {
+            addMemoryBtn.parentNode.replaceChild(newAddMemoryBtn, addMemoryBtn);
+        }
+        
+        // Добавляем новый обработчик
+        newAddMemoryBtn.addEventListener('click', function() {
             console.log('Add memory button clicked');
             showMemoryModal('past');
         });
+        
+        console.log('Memory button handler set up');
     } else {
         console.error('Memory Map: Add memory button not found!');
     }
     
     if (projectBtn) {
-        console.log('Project button found, adding event listener');
-        projectBtn.addEventListener('click', function() {
+        // Клонируем кнопку, чтобы удалить все обработчики событий
+        const newProjectBtn = projectBtn.cloneNode(true);
+        if (projectBtn.parentNode) {
+            projectBtn.parentNode.replaceChild(newProjectBtn, projectBtn);
+        }
+        
+        // Добавляем новый обработчик
+        newProjectBtn.addEventListener('click', function() {
             console.log('Project button clicked');
             showMemoryModal('future');
         });
+        
+        console.log('Project button handler set up');
     } else {
         console.error('Memory Map: Project button not found!');
+    }
+}
+
+// Настройка обработчиков для упрощенного режима
+function setupSimpleButtonHandlers() {
+    console.log('Setting up simple button handlers...');
+    
+    // Аналогично основным обработчикам
+    const addMemoryBtn = document.getElementById('add-memory-btn');
+    const projectBtn = document.getElementById('project-btn');
+    
+    if (addMemoryBtn) {
+        // Клонируем кнопку, чтобы удалить все обработчики событий
+        const newAddMemoryBtn = addMemoryBtn.cloneNode(true);
+        if (addMemoryBtn.parentNode) {
+            addMemoryBtn.parentNode.replaceChild(newAddMemoryBtn, addMemoryBtn);
+        }
+        
+        // Добавляем новый обработчик
+        newAddMemoryBtn.addEventListener('click', function() {
+            console.log('Add memory button clicked in simple mode');
+            showMemoryModal('past');
+        });
+        
+        console.log('Simple memory button handler set up');
+    }
+    
+    if (projectBtn) {
+        // Клонируем кнопку, чтобы удалить все обработчики событий
+        const newProjectBtn = projectBtn.cloneNode(true);
+        if (projectBtn.parentNode) {
+            projectBtn.parentNode.replaceChild(newProjectBtn, projectBtn);
+        }
+        
+        // Добавляем новый обработчик
+        newProjectBtn.addEventListener('click', function() {
+            console.log('Project button clicked in simple mode');
+            showMemoryModal('future');
+        });
+        
+        console.log('Simple project button handler set up');
     }
 }
 
@@ -303,6 +459,114 @@ function showMemoryModal(type) {
     let existingModal = document.querySelector('.memory-modal');
     if (existingModal) {
         existingModal.remove();
+    }
+    
+    // Добавляем стили для модального окна, если их нет
+    if (!document.getElementById('memory-modal-styles')) {
+        const styleElement = document.createElement('style');
+        styleElement.id = 'memory-modal-styles';
+        styleElement.textContent = `
+            .memory-modal {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 100;
+                background: rgba(0, 0, 0, 0.9);
+                border: 1px solid var(--primary-color);
+                border-radius: 8px;
+                padding: 1rem;
+                transition: opacity 0.2s ease;
+                opacity: 0;
+                width: 80%;
+                max-width: 400px;
+            }
+            .memory-modal.active {
+                opacity: 1;
+            }
+            .memory-modal-content {
+                color: var(--text-color);
+            }
+            .memory-modal-content h4 {
+                color: var(--primary-color);
+                margin-top: 0;
+                font-family: 'VT323', monospace;
+                text-align: center;
+            }
+            .memory-modal-content input[type="text"],
+            .memory-modal-content textarea {
+                width: 100%;
+                padding: 0.5rem;
+                background: rgba(30, 30, 30, 0.9);
+                border: 1px solid var(--primary-color);
+                border-radius: 4px;
+                color: var(--primary-color);
+                font-family: 'VT323', monospace;
+                margin-bottom: 10px;
+            }
+            .memory-modal-content textarea {
+                height: 100px;
+                resize: vertical;
+            }
+            .emotion-selector {
+                margin: 0.5rem 0;
+            }
+            .emotion-selector span {
+                display: block;
+                margin-bottom: 0.5rem;
+                color: var(--text-color-muted);
+            }
+            .emotion-scale {
+                display: flex;
+                gap: 0.5rem;
+                flex-wrap: wrap;
+                margin-top: 5px;
+            }
+            .emotion {
+                cursor: pointer;
+                padding: 0.2rem 0.5rem;
+                border: 1px solid var(--primary-color);
+                border-radius: 4px;
+                color: var(--text-color);
+                font-family: 'VT323', monospace;
+            }
+            .emotion.selected {
+                background: var(--primary-color);
+                color: #000;
+            }
+            .modal-actions {
+                display: flex;
+                gap: 0.5rem;
+                justify-content: flex-end;
+                margin-top: 1rem;
+            }
+            .modal-actions button {
+                background: transparent;
+                border: 1px solid var(--primary-color);
+                color: var(--primary-color);
+                padding: 0.5rem 1rem;
+                border-radius: 4px;
+                cursor: pointer;
+                font-family: 'VT323', monospace;
+                font-size: 1rem;
+                transition: all 0.3s ease;
+            }
+            .modal-actions button:hover {
+                background: rgba(255, 215, 0, 0.1);
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+            }
+            @media (max-width: 480px) {
+                .memory-modal {
+                    width: 90%;
+                    padding: 0.75rem;
+                }
+                .modal-actions button {
+                    padding: 0.4rem 0.75rem;
+                }
+            }
+        `;
+        document.head.appendChild(styleElement);
     }
     
     // Создаем новое модальное окно
@@ -356,39 +620,59 @@ function setupModalHandlers(modal) {
         });
     });
     
-    modal.querySelector('#cancel-memory').addEventListener('click', () => {
-        modal.classList.remove('active');
-        playSound('close');
-        setTimeout(() => modal.remove(), 300);
-    });
+    // Автоматически выбираем первую эмоцию по умолчанию
+    if (emotions.length > 0 && !modal.querySelector('.emotion.selected')) {
+        emotions[0].classList.add('selected');
+    }
     
-    modal.querySelector('#save-memory').addEventListener('click', () => {
-        const title = modal.querySelector('#memory-title').value.trim();
-        const description = modal.querySelector('#memory-desc').value.trim();
-        const selectedEmotion = modal.querySelector('.emotion.selected');
-        const type = modal.querySelector('#memory-type').value;
-        
-        if (!title) {
-            alert('Please enter a title for your memory');
-            return;
-        }
-        
-        const emotion = selectedEmotion ? selectedEmotion.dataset.value : 'reflection';
-        const memory = {
-            id: Date.now(),
-            title,
-            description,
-            emotion,
-            type,
-            timestamp: new Date().toISOString(),
-            position: generateRandomPosition(type)
-        };
-        
-        saveMemory(memory);
-        modal.classList.remove('active');
-        playSound('success');
-        setTimeout(() => modal.remove(), 300);
-    });
+    const cancelBtn = modal.querySelector('#cancel-memory');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            playSound('close');
+            setTimeout(() => modal.remove(), 300);
+        });
+    }
+    
+    const saveBtn = modal.querySelector('#save-memory');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            const titleInput = modal.querySelector('#memory-title');
+            const descInput = modal.querySelector('#memory-desc');
+            const typeInput = modal.querySelector('#memory-type');
+            
+            if (!titleInput || !descInput || !typeInput) {
+                console.error('Memory Map: Missing form elements in modal');
+                return;
+            }
+            
+            const title = titleInput.value.trim();
+            const description = descInput.value.trim();
+            const selectedEmotion = modal.querySelector('.emotion.selected');
+            const type = typeInput.value;
+            
+            if (!title) {
+                alert('Please enter a title for your memory');
+                return;
+            }
+            
+            const emotion = selectedEmotion ? selectedEmotion.dataset.value : 'reflection';
+            const memory = {
+                id: Date.now(),
+                title,
+                description,
+                emotion,
+                type,
+                timestamp: new Date().toISOString(),
+                position: generateRandomPosition(type)
+            };
+            
+            saveMemory(memory);
+            modal.classList.remove('active');
+            playSound('success');
+            setTimeout(() => modal.remove(), 300);
+        });
+    }
 }
 
 // Генерация случайной позиции
@@ -404,7 +688,13 @@ function saveMemory(memory) {
     memories = loadMemories();
     memories.push(memory);
     localStorage.setItem('timeMemories', JSON.stringify(memories));
-    createConstellation();
+    
+    if (isThreeAvailable) {
+        createConstellation();
+    } else {
+        updateSimpleMemoryList();
+    }
+    
     console.log('Memory Map: Memory saved', memory);
 }
 
@@ -421,39 +711,43 @@ function loadMemories() {
 
 // Звуковые эффекты
 function playSound(type) {
-    if (!audioContext) {
-        try {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        } catch (e) {
-            console.error('Web Audio API is not supported in this browser');
-            return;
+    try {
+        if (!audioContext) {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.error('Web Audio API is not supported in this browser');
+                return;
+            }
         }
+        
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        
+        const config = {
+            'open': [300, 600, 0.2, 0.3],
+            'close': [600, 300, 0.2, 0.3],
+            'select': [440, 440, 0.1, 0.1],
+            'success': [440, 660, 0.2, 0.3]
+        }[type] || [440, 440, 0.1, 0.1];
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(config[0], audioContext.currentTime);
+        if (type === 'success') {
+            oscillator.frequency.setValueAtTime(550, audioContext.currentTime + 0.1);
+            oscillator.frequency.setValueAtTime(config[1], audioContext.currentTime + 0.2);
+        } else {
+            oscillator.frequency.exponentialRampToValueAtTime(config[1], audioContext.currentTime + config[3]);
+        }
+        gain.gain.setValueAtTime(config[2], audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + config[3]);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + config[3]);
+    } catch (error) {
+        console.warn('Error playing sound:', error);
     }
-    
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
-    
-    const config = {
-        'open': [300, 600, 0.2, 0.3],
-        'close': [600, 300, 0.2, 0.3],
-        'select': [440, 440, 0.1, 0.1],
-        'success': [440, 660, 0.2, 0.3]
-    }[type] || [440, 440, 0.1, 0.1];
-    
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(config[0], audioContext.currentTime);
-    if (type === 'success') {
-        oscillator.frequency.setValueAtTime(550, audioContext.currentTime + 0.1);
-        oscillator.frequency.setValueAtTime(config[1], audioContext.currentTime + 0.2);
-    } else {
-        oscillator.frequency.exponentialRampToValueAtTime(config[1], audioContext.currentTime + config[3]);
-    }
-    gain.gain.setValueAtTime(config[2], audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + config[3]);
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + config[3]);
 }
 
 // Очистка воспоминаний
@@ -461,17 +755,47 @@ function clearAllMemories() {
     if (confirm('Are you sure you want to delete all memories?')) {
         localStorage.removeItem('timeMemories');
         memories = [];
-        createConstellation();
+        if (isThreeAvailable) {
+            createConstellation();
+        } else {
+            updateSimpleMemoryList();
+        }
         console.log('Memory Map: All memories cleared');
     }
 }
 
-// Экспорт функций
-window.MemoryMap = {
-    initialize: () => { loadMemories(); createConstellation(); },
-    addMemory: type => showMemoryModal(type),
-    clearMemories: clearAllMemories
-};
+// Обработка изменения размера окна
+function onWindowResize() {
+    if (!isThreeAvailable) return;
+    
+    const container = document.getElementById('memory-map');
+    if (!container) return;
+    
+    camera.aspect = container.clientWidth / container.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    console.log('Memory Map: Window resized');
+}
 
-// Экспорт функции инициализации для глобального доступа
-window.initMemoryMap = initMemoryMap;
+// Обработка движения мыши
+function onMouseMove(event) {
+    if (!isThreeAvailable || !particles) return;
+    
+    const container = document.getElementById('memory-map');
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObject(particles);
+    
+    if (intersects.length > 0) {
+        const index = intersects[0].index;
+        const memory = memories[index];
+        showTooltip(memory, event.clientX, event.clientY);
+    } else {
+        hideTooltip();
+    }
+}

@@ -55,13 +55,13 @@
     align-items: center;
     z-index: 1000;
     opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
+    display: none;
+    transition: opacity 0.3s ease;
   }
   
   .memory-modal.active {
     opacity: 1;
-    visibility: visible;
+    display: flex;
   }
   
   .memory-modal-content {
