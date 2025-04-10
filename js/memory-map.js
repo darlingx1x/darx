@@ -144,8 +144,8 @@ function updateSimpleMemoryList() {
     const memoryList = document.getElementById('simple-memory-list');
     if (!memoryList) return;
     
-    // Clear current list
-    while (memoryList.children.length > 1) { // Keep header
+    // Clear current list (оставляем только заголовок)
+    while (memoryList.children.length > 1) {
         memoryList.removeChild(memoryList.lastChild);
     }
     
@@ -413,7 +413,7 @@ function setupButtonHandlers() {
     }
 }
 
-// Show memory modal with proper positioning
+// Исправляем функцию showMemoryModal для корректного позиционирования
 function showMemoryModal(type, buttonElement) {
     console.log(`Memory Map: Showing memory modal for type: ${type}`);
     
@@ -431,13 +431,13 @@ function showMemoryModal(type, buttonElement) {
     const modal = document.createElement('div');
     modal.className = 'memory-modal premium-modal';
     
-    // Position modal below the button
+    // Position modal relative to the button - below it
     Object.assign(modal.style, {
         position: 'fixed',
         width: `${modalWidth}px`,
         maxWidth: '90vw',
         top: `${buttonRect.bottom + 20}px`,
-        left: `${Math.min(buttonRect.left, window.innerWidth - modalWidth - 20)}px`,
+        left: `${Math.max(20, Math.min(buttonRect.left, window.innerWidth - modalWidth - 20))}px`,
         zIndex: '9999',
         padding: '25px',
         opacity: '0',
@@ -539,12 +539,24 @@ function showMemoryModal(type, buttonElement) {
         saveMemoryData(modal);
     });
     
-    // Show modal with animation
-    setTimeout(() => {
-        modal.style.opacity = '1';
-        modal.style.transform = 'translateY(0)';
-        playSound('open');
-    }, 10);
+    // Check if modal would be off-screen for mobile devices and adjust
+    if (window.innerWidth <= 768) {
+        // Center the modal for mobile
+        modal.style.left = '50%';
+        modal.style.transform = 'translateX(-50%) translateY(-10px)';
+        
+        // Adjust animation for mobile
+        setTimeout(() => {
+            modal.style.opacity = '1';
+            modal.style.transform = 'translateX(-50%) translateY(0)';
+        }, 10);
+    } else {
+        // Show modal with standard animation
+        setTimeout(() => {
+            modal.style.opacity = '1';
+            modal.style.transform = 'translateY(0)';
+        }, 10);
+    }
     
     // Focus title input
     setTimeout(() => {
@@ -578,7 +590,40 @@ function closeModal(modal) {
     }, 300);
 }
 
-// Save memory data
+// Обновляем функцию saveMemory, чтобы она вызывала обновление визуализации
+function saveMemory(memory) {
+    console.log('Saving memory:', memory);
+    
+    // Load existing memories
+    let memories = loadMemories();
+    
+    // Add new memory
+    memories.push(memory);
+    
+    // Save to localStorage
+    try {
+        localStorage.setItem('timeMemories', JSON.stringify(memories));
+        console.log('Memory saved successfully');
+        
+        // Update visualization based on current mode
+        if (isThreeAvailable) {
+            console.log('Updating 3D visualization');
+            // Обновляем глобальную переменную memories
+            window.memories = memories;
+            createConstellation();
+        } else {
+            console.log('Updating simple visualization');
+            updateSimpleMemoryList();
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Error saving memory:', error);
+        return false;
+    }
+}
+
+// Обновляем функцию saveMemoryData для корректной работы
 function saveMemoryData(modal) {
     const titleInput = modal.querySelector('#memory-title');
     const descInput = modal.querySelector('#memory-desc');
@@ -682,35 +727,6 @@ function generateRandomPosition(type) {
     let y = Math.random() * 0.8 + 0.1;
     let z = Math.random() * 0.5;
     return { x, y, z };
-}
-
-// Save memory
-function saveMemory(memory) {
-    console.log('Saving memory:', memory);
-    
-    // Load existing memories
-    let memories = loadMemories();
-    
-    // Add new memory
-    memories.push(memory);
-    
-    // Save to localStorage
-    try {
-        localStorage.setItem('timeMemories', JSON.stringify(memories));
-        console.log('Memory saved successfully');
-        
-        // Update visualization
-        if (isThreeAvailable) {
-            createConstellation();
-        } else {
-            updateSimpleMemoryList();
-        }
-        
-        return true;
-    } catch (error) {
-        console.error('Error saving memory:', error);
-        return false;
-    }
 }
 
 // Load memories
@@ -842,216 +858,215 @@ function onWindowResize() {
 }
 
 // Mouse move handler
-// Mouse move handler
 function onMouseMove(event) {
-  if (!isThreeAvailable || !particles) return;
-  
-  const container = document.getElementById('memory-map');
-  if (!container) return;
-  
-  const rect = container.getBoundingClientRect();
-  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-  
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObject(particles);
-  
-  if (intersects.length > 0) {
-      const index = intersects[0].index;
-      const memory = memories[index];
-      showTooltip(memory, event.clientX, event.clientY);
-  } else {
-      hideTooltip();
-  }
+    if (!isThreeAvailable || !particles) return;
+    
+    const container = document.getElementById('memory-map');
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObject(particles);
+    
+    if (intersects.length > 0) {
+        const index = intersects[0].index;
+        const memory = memories[index];
+        showTooltip(memory, event.clientX, event.clientY);
+    } else {
+        hideTooltip();
+    }
 }
 
 // Mouse click handler
 function onMouseClick(event) {
-  if (!isThreeAvailable || !particles) return;
-  
-  const container = document.getElementById('memory-map');
-  if (!container) return;
-  
-  const rect = container.getBoundingClientRect();
-  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-  
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObject(particles);
-  
-  if (intersects.length > 0) {
-      const index = intersects[0].index;
-      const memory = memories[index];
-      displayMemoryDetails(memory);
-  }
+    if (!isThreeAvailable || !particles) return;
+    
+    const container = document.getElementById('memory-map');
+    if (!container) return;
+    
+    const rect = container.getBoundingClientRect();
+    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+    
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObject(particles);
+    
+    if (intersects.length > 0) {
+        const index = intersects[0].index;
+        const memory = memories[index];
+        displayMemoryDetails(memory);
+    }
 }
 
 // Show memory tooltip
 function showTooltip(memory, x, y) {
-  if (!memory) return;
-  
-  // Remove existing tooltip
-  hideTooltip();
-  
-  // Create tooltip
-  const tooltip = document.createElement('div');
-  tooltip.className = 'memory-tooltip';
-  tooltip.style.position = 'absolute';
-  tooltip.style.top = `${y + 20}px`;
-  tooltip.style.left = `${x + 10}px`;
-  tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-  tooltip.style.color = getEmotionColor(memory.emotion);
-  tooltip.style.padding = '10px';
-  tooltip.style.borderRadius = '4px';
-  tooltip.style.zIndex = '1000';
-  tooltip.style.pointerEvents = 'none';
-  tooltip.style.fontSize = '14px';
-  tooltip.style.maxWidth = '200px';
-  tooltip.style.border = `1px solid ${getEmotionColor(memory.emotion)}`;
-  tooltip.style.boxShadow = `0 0 10px rgba(${hexToRgb(getEmotionColor(memory.emotion))}, 0.3)`;
-  
-  // Tooltip content
-  tooltip.innerHTML = `
-      <div style="font-weight: bold; margin-bottom: 5px;">${memory.title}</div>
-      <div style="font-size: 12px; opacity: 0.8;">Type: ${memory.type}</div>
-      <div style="font-size: 12px; opacity: 0.8;">Emotion: ${memory.emotion}</div>
-  `;
-  
-  // Add to body
-  document.body.appendChild(tooltip);
+    if (!memory) return;
+    
+    // Remove existing tooltip
+    hideTooltip();
+    
+    // Create tooltip
+    const tooltip = document.createElement('div');
+    tooltip.className = 'memory-tooltip';
+    tooltip.style.position = 'absolute';
+    tooltip.style.top = `${y + 20}px`;
+    tooltip.style.left = `${x + 10}px`;
+    tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+    tooltip.style.color = getEmotionColor(memory.emotion);
+    tooltip.style.padding = '10px';
+    tooltip.style.borderRadius = '4px';
+    tooltip.style.zIndex = '1000';
+    tooltip.style.pointerEvents = 'none';
+    tooltip.style.fontSize = '14px';
+    tooltip.style.maxWidth = '200px';
+    tooltip.style.border = `1px solid ${getEmotionColor(memory.emotion)}`;
+    tooltip.style.boxShadow = `0 0 10px rgba(${hexToRgb(getEmotionColor(memory.emotion))}, 0.3)`;
+    
+    // Tooltip content
+    tooltip.innerHTML = `
+        <div style="font-weight: bold; margin-bottom: 5px;">${memory.title}</div>
+        <div style="font-size: 12px; opacity: 0.8;">Type: ${memory.type}</div>
+        <div style="font-size: 12px; opacity: 0.8;">Emotion: ${memory.emotion}</div>
+    `;
+    
+    // Add to body
+    document.body.appendChild(tooltip);
 }
 
 // Hide memory tooltip
 function hideTooltip() {
-  const tooltip = document.querySelector('.memory-tooltip');
-  if (tooltip) {
-      tooltip.remove();
-  }
+    const tooltip = document.querySelector('.memory-tooltip');
+    if (tooltip) {
+        tooltip.remove();
+    }
 }
 
 // Display memory details
 function displayMemoryDetails(memory) {
-  if (!memory) return;
-  
-  // Create modal
-  const modal = document.createElement('div');
-  modal.className = 'memory-modal premium-modal';
-  
-  // Set modal styles
-  Object.assign(modal.style, {
-      position: 'fixed',
-      width: '450px',
-      maxWidth: '90vw',
-      top: '50%',
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      zIndex: '9999',
-      padding: '25px',
-      opacity: '0',
-      transition: 'all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1)'
-  });
-  
-  // Format date
-  const formattedDate = new Date(memory.timestamp).toLocaleString();
-  
-  // Modal content
-  modal.innerHTML = `
-      <div class="memory-modal-content">
-          <h3 style="font-size: 2rem; color: ${getEmotionColor(memory.emotion)}; margin-top: 0; text-align: center; margin-bottom: 20px;">${memory.title}</h3>
-          
-          <div style="margin-bottom: 15px;">
-              <div style="font-size: 1.1rem; color: #FFD700; margin-bottom: 5px;">Type:</div>
-              <div style="background: rgba(20, 20, 20, 0.8); padding: 10px; border-radius: 6px; border: 1px solid ${getEmotionColor(memory.emotion)};">
-                  ${memory.type === 'past' ? '◄ Past Memory' : '► Future Projection'}
-              </div>
-          </div>
-          
-          <div style="margin-bottom: 15px;">
-              <div style="font-size: 1.1rem; color: #FFD700; margin-bottom: 5px;">Emotional Signature:</div>
-              <div style="background: rgba(20, 20, 20, 0.8); padding: 10px; border-radius: 6px; border: 1px solid ${getEmotionColor(memory.emotion)}; color: ${getEmotionColor(memory.emotion)};">
-                  ${memory.emotion}
-              </div>
-          </div>
-          
-          <div style="margin-bottom: 15px;">
-              <div style="font-size: 1.1rem; color: #FFD700; margin-bottom: 5px;">Timestamp:</div>
-              <div style="background: rgba(20, 20, 20, 0.8); padding: 10px; border-radius: 6px; border: 1px solid rgba(255, 215, 0, 0.3);">
-                  ${formattedDate}
-              </div>
-          </div>
-          
-          ${memory.description ? `
-          <div style="margin-bottom: 15px;">
-              <div style="font-size: 1.1rem; color: #FFD700; margin-bottom: 5px;">Description:</div>
-              <div style="background: rgba(20, 20, 20, 0.8); padding: 10px; border-radius: 6px; border: 1px solid rgba(255, 215, 0, 0.3); min-height: 100px;">
-                  ${memory.description}
-              </div>
-          </div>
-          ` : ''}
-          
-          <div class="modal-actions">
-              <button id="close-detail">Close</button>
-              <button id="delete-memory" style="background: rgba(255, 0, 0, 0.2); color: #FF5555; border: 1px solid #FF5555;">Delete</button>
-          </div>
-      </div>
-  `;
-  
-  // Add to body
-  document.body.appendChild(modal);
-  
-  // Button handlers
-  modal.querySelector('#close-detail').addEventListener('click', function() {
-      closeModal(modal);
-  });
-  
-  modal.querySelector('#delete-memory').addEventListener('click', function() {
-      if (confirm('Are you sure you want to delete this memory?')) {
-          deleteMemory(memory.id);
-          closeModal(modal);
-      }
-  });
-  
-  // Show modal
-  setTimeout(() => {
-      modal.style.opacity = '1';
-      modal.style.transform = 'translate(-50%, -50%) scale(1)';
-      playSound('open');
-  }, 10);
+    if (!memory) return;
+    
+    // Create modal
+    const modal = document.createElement('div');
+    modal.className = 'memory-modal premium-modal';
+    
+    // Set modal styles
+    Object.assign(modal.style, {
+        position: 'fixed',
+        width: '450px',
+        maxWidth: '90vw',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: '9999',
+        padding: '25px',
+        opacity: '0',
+        transition: 'all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1)'
+    });
+    
+    // Format date
+    const formattedDate = new Date(memory.timestamp).toLocaleString();
+    
+    // Modal content
+    modal.innerHTML = `
+        <div class="memory-modal-content">
+            <h3 style="font-size: 2rem; color: ${getEmotionColor(memory.emotion)}; margin-top: 0; text-align: center; margin-bottom: 20px;">${memory.title}</h3>
+            
+            <div style="margin-bottom: 15px;">
+                <div style="font-size: 1.1rem; color: #FFD700; margin-bottom: 5px;">Type:</div>
+                <div style="background: rgba(20, 20, 20, 0.8); padding: 10px; border-radius: 6px; border: 1px solid ${getEmotionColor(memory.emotion)};">
+                    ${memory.type === 'past' ? '◄ Past Memory' : '► Future Projection'}
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <div style="font-size: 1.1rem; color: #FFD700; margin-bottom: 5px;">Emotional Signature:</div>
+                <div style="background: rgba(20, 20, 20, 0.8); padding: 10px; border-radius: 6px; border: 1px solid ${getEmotionColor(memory.emotion)}; color: ${getEmotionColor(memory.emotion)};">
+                    ${memory.emotion}
+                </div>
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <div style="font-size: 1.1rem; color: #FFD700; margin-bottom: 5px;">Timestamp:</div>
+                <div style="background: rgba(20, 20, 20, 0.8); padding: 10px; border-radius: 6px; border: 1px solid rgba(255, 215, 0, 0.3);">
+                    ${formattedDate}
+                </div>
+            </div>
+            
+            ${memory.description ? `
+            <div style="margin-bottom: 15px;">
+                <div style="font-size: 1.1rem; color: #FFD700; margin-bottom: 5px;">Description:</div>
+                <div style="background: rgba(20, 20, 20, 0.8); padding: 10px; border-radius: 6px; border: 1px solid rgba(255, 215, 0, 0.3); min-height: 100px;">
+                    ${memory.description}
+                </div>
+            </div>
+            ` : ''}
+            
+            <div class="modal-actions">
+                <button id="close-detail">Close</button>
+                <button id="delete-memory" style="background: rgba(255, 0, 0, 0.2); color: #FF5555; border: 1px solid #FF5555;">Delete</button>
+            </div>
+        </div>
+    `;
+    
+    // Add to body
+    document.body.appendChild(modal);
+    
+    // Button handlers
+    modal.querySelector('#close-detail').addEventListener('click', function() {
+        closeModal(modal);
+    });
+    
+    modal.querySelector('#delete-memory').addEventListener('click', function() {
+        if (confirm('Are you sure you want to delete this memory?')) {
+            deleteMemory(memory.id);
+            closeModal(modal);
+        }
+    });
+    
+    // Show modal
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        modal.style.transform = 'translate(-50%, -50%) scale(1)';
+        playSound('open');
+    }, 10);
 }
 
 // Delete memory
 function deleteMemory(id) {
-  let memories = loadMemories();
-  memories = memories.filter(memory => memory.id !== id);
-  
-  try {
-      localStorage.setItem('timeMemories', JSON.stringify(memories));
-      
-      // Update visualization
-      if (isThreeAvailable) {
-          createConstellation();
-      } else {
-          updateSimpleMemoryList();
-      }
-      
-      playSound('close');
-  } catch (error) {
-      console.error('Error deleting memory:', error);
-  }
+    let memories = loadMemories();
+    memories = memories.filter(memory => memory.id !== id);
+    
+    try {
+        localStorage.setItem('timeMemories', JSON.stringify(memories));
+        
+        // Update visualization
+        if (isThreeAvailable) {
+            createConstellation();
+        } else {
+            updateSimpleMemoryList();
+        }
+        
+        playSound('close');
+    } catch (error) {
+        console.error('Error deleting memory:', error);
+    }
 }
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize memory map
-  initMemoryMap();
+    // Initialize memory map
+    initMemoryMap();
 });
 
 // Reinitialize when page shown
 document.addEventListener('visibilitychange', function() {
-  if (!document.hidden) {
-      // Page is visible again
-      if (isThreeAvailable && !animationRunning) {
-          animate();
-      }
-  }
+    if (!document.hidden) {
+        // Page is visible again
+        if (isThreeAvailable && !animationRunning) {
+            animate();
+        }
+    }
 });
