@@ -1,10 +1,9 @@
 /**
  * memory-map.js
- * Премиум-визуализация Memory Constellation с использованием Three.js
- * Исправлено для корректной инициализации и рендеринга
+ * Premium-quality visualization of Memory Constellation with improved modal functionality
  */
 
-// Глобальные переменные
+// Global variables
 let scene, camera, renderer, raycaster, mouse;
 let memories = [];
 let particles, lines;
@@ -12,12 +11,13 @@ let audioContext = null;
 let time = 0;
 let isThreeAvailable = false;
 let buttonHandlersInitialized = false;
+let animationRunning = false;
 
-// Инициализация после полной загрузки DOM и Three.js
+// Initialize after DOM and Three.js are loaded
 function initMemoryMap() {
     console.log('Memory Map: Initializing...');
     
-    // Проверка наличия Three.js
+    // Check for Three.js
     if (typeof THREE === 'undefined') {
         console.error('Memory Map: Three.js is not loaded!');
         initSimpleMemoryMap();
@@ -26,33 +26,34 @@ function initMemoryMap() {
     
     isThreeAvailable = true;
     
-    // Проверка наличия canvas
+    // Check for canvas
     const canvas = document.getElementById('memory-map');
     if (!canvas) {
         console.error('Memory Map: Canvas element with id "memory-map" not found!');
         return;
     }
     
-    // Настройка сцены Three.js
+    // Setup Three.js scene
     try {
         setupScene();
         
-        // Загрузка воспоминаний
-        loadMemories();
+        // Load memories
+        memories = loadMemories();
         
-        // Создание визуализации
+        // Create visualization
         createConstellation();
         
-        // Настройка обработчиков кнопок - избегаем дублирования
+        // Setup button handlers - avoid duplication
         if (!buttonHandlersInitialized) {
             setupButtonHandlers();
             buttonHandlersInitialized = true;
         }
         
-        // Анимация
+        // Animation
+        animationRunning = true;
         animate();
         
-        // Обработчики событий
+        // Event handlers
         window.addEventListener('resize', onWindowResize);
         canvas.addEventListener('mousemove', onMouseMove);
         canvas.addEventListener('click', onMouseClick);
@@ -63,49 +64,49 @@ function initMemoryMap() {
     }
 }
 
-// Инициализация упрощенной версии карты памяти (без Three.js)
+// Initialize simplified version
 function initSimpleMemoryMap() {
     console.log('Memory Map: Initializing simple mode...');
     
-    // Показываем запасной div
+    // Show fallback div
     const fallbackDiv = document.getElementById('memory-map-fallback');
     if (fallbackDiv) {
         fallbackDiv.style.display = 'block';
     }
     
-    // Скрываем canvas
+    // Hide canvas
     const canvas = document.getElementById('memory-map');
     if (canvas) {
         canvas.style.display = 'none';
     }
     
-    // Загружаем воспоминания
+    // Load memories
     memories = loadMemories();
     
-    // Создаем упрощенный интерфейс
+    // Create simplified interface
     createSimpleMemoryInterface();
     
-    // Настраиваем обработчики кнопок - избегаем дублирования
+    // Setup button handlers
     if (!buttonHandlersInitialized) {
-        setupSimpleButtonHandlers();
+        setupButtonHandlers();
         buttonHandlersInitialized = true;
     }
     
     console.log('Memory Map: Simple mode initialized successfully!');
 }
 
-// Создание упрощенного интерфейса для мемори-консоли
+// Create simplified memory interface
 function createSimpleMemoryInterface() {
     const container = document.querySelector('.memory-container');
     if (!container) return;
     
-    // Проверяем, не создан ли уже интерфейс
+    // Check if interface already exists
     if (container.querySelector('#simple-memory-list')) {
         console.log('Simple memory interface already exists');
         return;
     }
     
-    // Создаем простой список воспоминаний
+    // Create simple memory list
     const memoryList = document.createElement('div');
     memoryList.id = 'simple-memory-list';
     memoryList.style.width = '100%';
@@ -117,7 +118,7 @@ function createSimpleMemoryInterface() {
     memoryList.style.border = '1px solid var(--primary-color)';
     memoryList.style.marginBottom = '15px';
     
-    // Добавляем заголовок
+    // Add header
     const listHeader = document.createElement('h4');
     listHeader.textContent = 'Your Memory Timeline';
     listHeader.style.color = 'var(--primary-color)';
@@ -126,7 +127,7 @@ function createSimpleMemoryInterface() {
     listHeader.style.marginBottom = '15px';
     memoryList.appendChild(listHeader);
     
-    // Вставляем список перед элементом controls
+    // Insert list before controls
     const controls = container.querySelector('.memory-controls');
     if (controls) {
         container.insertBefore(memoryList, controls);
@@ -134,24 +135,24 @@ function createSimpleMemoryInterface() {
         container.appendChild(memoryList);
     }
     
-    // Обновляем список воспоминаний
+    // Update memory list
     updateSimpleMemoryList();
 }
 
-// Обновление упрощенного списка воспоминаний
+// Update simplified memory list
 function updateSimpleMemoryList() {
     const memoryList = document.getElementById('simple-memory-list');
     if (!memoryList) return;
     
-    // Очищаем текущий список
-    while (memoryList.children.length > 1) { // Оставляем заголовок
+    // Clear current list
+    while (memoryList.children.length > 1) { // Keep header
         memoryList.removeChild(memoryList.lastChild);
     }
     
-    // Сортируем воспоминания по времени
+    // Sort memories by time
     const sortedMemories = [...memories].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     
-    // Если список пуст, показываем сообщение
+    // Show message if empty
     if (sortedMemories.length === 0) {
         const emptyMessage = document.createElement('p');
         emptyMessage.textContent = 'No memories captured yet. Use the buttons below to add your first memory.';
@@ -162,7 +163,7 @@ function updateSimpleMemoryList() {
         return;
     }
     
-    // Добавляем каждое воспоминание в список
+    // Add memories to list
     sortedMemories.forEach(memory => {
         const memoryItem = document.createElement('div');
         memoryItem.className = 'simple-memory-item';
@@ -172,7 +173,7 @@ function updateSimpleMemoryList() {
         memoryItem.style.background = 'rgba(30, 30, 30, 0.5)';
         memoryItem.style.borderLeft = `4px solid ${getEmotionColor(memory.emotion)}`;
         
-        // Заголовок воспоминания
+        // Memory title
         const titleElement = document.createElement('h5');
         titleElement.textContent = memory.title;
         titleElement.style.margin = '0 0 5px 0';
@@ -180,7 +181,7 @@ function updateSimpleMemoryList() {
         titleElement.style.fontFamily = '"VT323", monospace';
         memoryItem.appendChild(titleElement);
         
-        // Тип воспоминания (прошлое/будущее)
+        // Memory type (past/future)
         const typeElement = document.createElement('span');
         typeElement.textContent = memory.type === 'past' ? '◄ Past' : '► Future';
         typeElement.style.fontSize = '0.8em';
@@ -188,14 +189,14 @@ function updateSimpleMemoryList() {
         typeElement.style.marginRight = '10px';
         memoryItem.appendChild(typeElement);
         
-        // Эмоция
+        // Emotion
         const emotionElement = document.createElement('span');
         emotionElement.textContent = `Emotion: ${memory.emotion}`;
         emotionElement.style.fontSize = '0.8em';
         emotionElement.style.color = 'var(--text-color-muted)';
         memoryItem.appendChild(emotionElement);
         
-        // Описание (если есть)
+        // Description (if any)
         if (memory.description) {
             const descElement = document.createElement('p');
             descElement.textContent = memory.description;
@@ -205,12 +206,12 @@ function updateSimpleMemoryList() {
             memoryItem.appendChild(descElement);
         }
         
-        // Добавляем в список
+        // Add to list
         memoryList.appendChild(memoryItem);
     });
 }
 
-// Получение цвета для эмоции
+// Get color for emotion
 function getEmotionColor(emotion) {
     const colors = {
         'joy': '#FFD700',
@@ -221,7 +222,7 @@ function getEmotionColor(emotion) {
     return colors[emotion] || '#FFFFFF';
 }
 
-// Настройка сцены Three.js
+// Setup Three.js scene
 function setupScene() {
     const container = document.getElementById('memory-map');
     scene = new THREE.Scene();
@@ -237,7 +238,7 @@ function setupScene() {
     console.log('Memory Map: Scene setup completed');
 }
 
-// Создание созвездия
+// Create constellation
 function createConstellation() {
     if (!isThreeAvailable) {
         return;
@@ -251,24 +252,24 @@ function createConstellation() {
         }
     }
     
-    // Ограничение количества частиц для производительности
+    // Limit particles for performance
     if (memories.length > 50) {
         console.warn('Memory Map: Too many memories, limiting to 50 for performance');
         memories = memories.slice(0, 50);
     }
     
-    // Проверка существования сцены
+    // Check for scene
     if (!scene) {
         console.error('Memory Map: Scene is not initialized');
         return;
     }
     
-    // Очистка сцены
+    // Clear scene
     while (scene.children.length > 0) {
         scene.remove(scene.children[0]);
     }
     
-    // Создание частиц (воспоминаний)
+    // Create particles (memories)
     const positions = [];
     const colors = [];
     const sizes = [];
@@ -325,7 +326,7 @@ function createConstellation() {
     particles = new THREE.Points(geometry, material);
     scene.add(particles);
     
-    // Создание линий
+    // Create lines
     const linePositions = [];
     const sortedMemories = [...memories].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
     sortedMemories.forEach(memory => {
@@ -365,25 +366,26 @@ function createConstellation() {
     console.log('Memory Map: Constellation created with', memories.length, 'memories');
 }
 
-// Настройка обработчиков кнопок
+// Setup button handlers
 function setupButtonHandlers() {
     console.log('Setting up button handlers...');
     
-    // Очищаем старые обработчики, заменяя элементы
+    // Get button elements
     const addMemoryBtn = document.getElementById('add-memory-btn');
     const projectBtn = document.getElementById('project-btn');
     
     if (addMemoryBtn) {
-        // Клонируем кнопку, чтобы удалить все обработчики событий
+        // Clone button to remove all event handlers
         const newAddMemoryBtn = addMemoryBtn.cloneNode(true);
         if (addMemoryBtn.parentNode) {
             addMemoryBtn.parentNode.replaceChild(newAddMemoryBtn, addMemoryBtn);
         }
         
-        // Добавляем новый обработчик
-        newAddMemoryBtn.addEventListener('click', function() {
+        // Add new handler
+        newAddMemoryBtn.addEventListener('click', function(event) {
+            event.preventDefault();
             console.log('Add memory button clicked');
-            showMemoryModal('past');
+            showMemoryModal('past', this);
         });
         
         console.log('Memory button handler set up');
@@ -392,16 +394,17 @@ function setupButtonHandlers() {
     }
     
     if (projectBtn) {
-        // Клонируем кнопку, чтобы удалить все обработчики событий
+        // Clone button to remove all event handlers
         const newProjectBtn = projectBtn.cloneNode(true);
         if (projectBtn.parentNode) {
             projectBtn.parentNode.replaceChild(newProjectBtn, projectBtn);
         }
         
-        // Добавляем новый обработчик
-        newProjectBtn.addEventListener('click', function() {
+        // Add new handler
+        newProjectBtn.addEventListener('click', function(event) {
+            event.preventDefault();
             console.log('Project button clicked');
-            showMemoryModal('future');
+            showMemoryModal('future', this);
         });
         
         console.log('Project button handler set up');
@@ -410,272 +413,270 @@ function setupButtonHandlers() {
     }
 }
 
-// Настройка обработчиков для упрощенного режима
-function setupSimpleButtonHandlers() {
-    console.log('Setting up simple button handlers...');
-    
-    // Аналогично основным обработчикам
-    const addMemoryBtn = document.getElementById('add-memory-btn');
-    const projectBtn = document.getElementById('project-btn');
-    
-    if (addMemoryBtn) {
-        // Клонируем кнопку, чтобы удалить все обработчики событий
-        const newAddMemoryBtn = addMemoryBtn.cloneNode(true);
-        if (addMemoryBtn.parentNode) {
-            addMemoryBtn.parentNode.replaceChild(newAddMemoryBtn, addMemoryBtn);
-        }
-        
-        // Добавляем новый обработчик
-        newAddMemoryBtn.addEventListener('click', function() {
-            console.log('Add memory button clicked in simple mode');
-            showMemoryModal('past');
-        });
-        
-        console.log('Simple memory button handler set up');
-    }
-    
-    if (projectBtn) {
-        // Клонируем кнопку, чтобы удалить все обработчики событий
-        const newProjectBtn = projectBtn.cloneNode(true);
-        if (projectBtn.parentNode) {
-            projectBtn.parentNode.replaceChild(newProjectBtn, projectBtn);
-        }
-        
-        // Добавляем новый обработчик
-        newProjectBtn.addEventListener('click', function() {
-            console.log('Project button clicked in simple mode');
-            showMemoryModal('future');
-        });
-        
-        console.log('Simple project button handler set up');
-    }
-}
-
-// Отображение модального окна
-function showMemoryModal(type) {
+// Show memory modal with proper positioning
+function showMemoryModal(type, buttonElement) {
     console.log(`Memory Map: Showing memory modal for type: ${type}`);
     
-    // Удаляем существующее модальное окно, если оно есть
+    // Remove existing modal
     let existingModal = document.querySelector('.memory-modal');
     if (existingModal) {
         existingModal.remove();
     }
     
-    // Добавляем стили для модального окна, если их нет
-    if (!document.getElementById('memory-modal-styles')) {
-        const styleElement = document.createElement('style');
-        styleElement.id = 'memory-modal-styles';
-        styleElement.textContent = `
-            .memory-modal {
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                z-index: 100;
-                background: rgba(0, 0, 0, 0.9);
-                border: 1px solid var(--primary-color);
-                border-radius: 8px;
-                padding: 1rem;
-                transition: opacity 0.2s ease;
-                opacity: 0;
-                width: 80%;
-                max-width: 400px;
-            }
-            .memory-modal.active {
-                opacity: 1;
-            }
-            .memory-modal-content {
-                color: var(--text-color);
-            }
-            .memory-modal-content h4 {
-                color: var(--primary-color);
-                margin-top: 0;
-                font-family: 'VT323', monospace;
-                text-align: center;
-            }
-            .memory-modal-content input[type="text"],
-            .memory-modal-content textarea {
-                width: 100%;
-                padding: 0.5rem;
-                background: rgba(30, 30, 30, 0.9);
-                border: 1px solid var(--primary-color);
-                border-radius: 4px;
-                color: var(--primary-color);
-                font-family: 'VT323', monospace;
-                margin-bottom: 10px;
-            }
-            .memory-modal-content textarea {
-                height: 100px;
-                resize: vertical;
-            }
-            .emotion-selector {
-                margin: 0.5rem 0;
-            }
-            .emotion-selector span {
-                display: block;
-                margin-bottom: 0.5rem;
-                color: var(--text-color-muted);
-            }
-            .emotion-scale {
-                display: flex;
-                gap: 0.5rem;
-                flex-wrap: wrap;
-                margin-top: 5px;
-            }
-            .emotion {
-                cursor: pointer;
-                padding: 0.2rem 0.5rem;
-                border: 1px solid var(--primary-color);
-                border-radius: 4px;
-                color: var(--text-color);
-                font-family: 'VT323', monospace;
-            }
-            .emotion.selected {
-                background: var(--primary-color);
-                color: #000;
-            }
-            .modal-actions {
-                display: flex;
-                gap: 0.5rem;
-                justify-content: flex-end;
-                margin-top: 1rem;
-            }
-            .modal-actions button {
-                background: transparent;
-                border: 1px solid var(--primary-color);
-                color: var(--primary-color);
-                padding: 0.5rem 1rem;
-                border-radius: 4px;
-                cursor: pointer;
-                font-family: 'VT323', monospace;
-                font-size: 1rem;
-                transition: all 0.3s ease;
-            }
-            .modal-actions button:hover {
-                background: rgba(255, 215, 0, 0.1);
-                transform: translateY(-2px);
-                box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
-            }
-            @media (max-width: 480px) {
-                .memory-modal {
-                    width: 90%;
-                    padding: 0.75rem;
-                }
-                .modal-actions button {
-                    padding: 0.4rem 0.75rem;
-                }
-            }
-        `;
-        document.head.appendChild(styleElement);
-    }
+    // Get button position for modal placement
+    const buttonRect = buttonElement.getBoundingClientRect();
+    const modalWidth = 450; // Wider modal for better readability
     
-    // Создаем новое модальное окно
+    // Create modal
     const modal = document.createElement('div');
-    modal.className = 'memory-modal';
+    modal.className = 'memory-modal premium-modal';
     
+    // Position modal below the button
+    Object.assign(modal.style, {
+        position: 'fixed',
+        width: `${modalWidth}px`,
+        maxWidth: '90vw',
+        top: `${buttonRect.bottom + 20}px`,
+        left: `${Math.min(buttonRect.left, window.innerWidth - modalWidth - 20)}px`,
+        zIndex: '9999',
+        padding: '25px',
+        opacity: '0',
+        transform: 'translateY(-10px)',
+        transition: 'all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1)'
+    });
+    
+    // Set title based on type
     const title = type === 'past' ? 'Capture Memory Fragment' : 'Project Future Aspiration';
+    
+    // Emotion options
+    const emotions = [
+        { value: 'joy', label: 'Joy', color: '#FFD700' },
+        { value: 'reflection', label: 'Reflection', color: '#87CEEB' },
+        { value: 'aspiration', label: 'Aspiration', color: '#9370DB' },
+        { value: 'sublime', label: 'Sublime', color: '#00FA9A' }
+    ];
+    
+    // Generate emotion options HTML
+    let emotionOptionsHTML = emotions.map(emotion => 
+        `<div class="emotion" data-value="${emotion.value}" style="color: ${emotion.color}; border-color: ${emotion.color};">
+            ${emotion.label}
+        </div>`
+    ).join('');
+    
+    // Modal content
     modal.innerHTML = `
         <div class="memory-modal-content">
-            <h4>${title}</h4>
-            <input type="text" id="memory-title" placeholder="Title" autocomplete="off">
-            <textarea id="memory-desc" placeholder="Description"></textarea>
+            <h3 style="font-size: 2rem; color: #FFD700; margin-top: 0; text-align: center; margin-bottom: 20px;">${title}</h3>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 1.2rem; margin-bottom: 8px; color: #FFD700;">Title:</label>
+                <input type="text" id="memory-title" placeholder="Enter title..." autocomplete="off">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 1.2rem; margin-bottom: 8px; color: #FFD700;">Description:</label>
+                <textarea id="memory-desc" placeholder="Enter description..."></textarea>
+            </div>
+            
             <div class="emotion-selector">
-                <span>Emotional signature:</span>
+                <label style="display: block; font-size: 1.2rem; margin-bottom: 10px; color: #FFD700;">Emotional signature:</label>
                 <div class="emotion-scale">
-                    <span data-value="joy" class="emotion">Joy</span>
-                    <span data-value="reflection" class="emotion">Reflection</span>
-                    <span data-value="aspiration" class="emotion">Aspiration</span>
-                    <span data-value="sublime" class="emotion">Sublime</span>
+                    ${emotionOptionsHTML}
                 </div>
             </div>
+            
             <div class="modal-actions">
                 <button id="cancel-memory">Cancel</button>
                 <button id="save-memory">Crystallize</button>
             </div>
+            
             <input type="hidden" id="memory-type" value="${type}">
         </div>
     `;
     
-    // Добавляем модальное окно в DOM
+    // Add modal to body
     document.body.appendChild(modal);
     
-    // Настраиваем обработчики для модального окна
-    setupModalHandlers(modal);
-    
-    // Делаем модальное окно видимым после добавления в DOM
-    setTimeout(() => {
-        modal.classList.add('active');
-        playSound('open');
-    }, 10);
-}
-
-// Настройка обработчиков модального окна
-function setupModalHandlers(modal) {
-    const emotions = modal.querySelectorAll('.emotion');
-    emotions.forEach(emotion => {
+    // Setup emotion selection
+    const emotionElements = modal.querySelectorAll('.emotion');
+    emotionElements.forEach(emotion => {
         emotion.addEventListener('click', function() {
-            emotions.forEach(e => e.classList.remove('selected'));
-            this.classList.add('selected');
+            // Remove selected state from all emotions
+            emotionElements.forEach(e => {
+                e.style.background = 'transparent';
+                e.style.transform = 'scale(1)';
+                e.style.fontWeight = 'normal';
+            });
+            
+            // Add selected state
+            const color = this.style.color;
+            this.style.background = `rgba(${hexToRgb(color)}, 0.2)`;
+            this.style.transform = 'scale(1.05)';
+            this.style.fontWeight = 'bold';
+            
+            // Play sound
             playSound('select');
         });
     });
     
-    // Автоматически выбираем первую эмоцию по умолчанию
-    if (emotions.length > 0 && !modal.querySelector('.emotion.selected')) {
-        emotions[0].classList.add('selected');
+    // Select first emotion by default
+    if (emotionElements.length > 0) {
+        const firstEmotion = emotionElements[0];
+        const color = firstEmotion.style.color;
+        firstEmotion.style.background = `rgba(${hexToRgb(color)}, 0.2)`;
+        firstEmotion.style.transform = 'scale(1.05)';
+        firstEmotion.style.fontWeight = 'bold';
     }
     
-    const cancelBtn = modal.querySelector('#cancel-memory');
-    if (cancelBtn) {
-        cancelBtn.addEventListener('click', () => {
-            modal.classList.remove('active');
-            playSound('close');
-            setTimeout(() => modal.remove(), 300);
-        });
-    }
+    // Cancel button handler
+    modal.querySelector('#cancel-memory').addEventListener('click', function() {
+        closeModal(modal);
+        playSound('close');
+    });
     
-    const saveBtn = modal.querySelector('#save-memory');
-    if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-            const titleInput = modal.querySelector('#memory-title');
-            const descInput = modal.querySelector('#memory-desc');
-            const typeInput = modal.querySelector('#memory-type');
-            
-            if (!titleInput || !descInput || !typeInput) {
-                console.error('Memory Map: Missing form elements in modal');
-                return;
-            }
-            
-            const title = titleInput.value.trim();
-            const description = descInput.value.trim();
-            const selectedEmotion = modal.querySelector('.emotion.selected');
-            const type = typeInput.value;
-            
-            if (!title) {
-                alert('Please enter a title for your memory');
-                return;
-            }
-            
-            const emotion = selectedEmotion ? selectedEmotion.dataset.value : 'reflection';
-            const memory = {
-                id: Date.now(),
-                title,
-                description,
-                emotion,
-                type,
-                timestamp: new Date().toISOString(),
-                position: generateRandomPosition(type)
-            };
-            
-            saveMemory(memory);
-            modal.classList.remove('active');
-            playSound('success');
-            setTimeout(() => modal.remove(), 300);
-        });
-    }
+    // Save button handler
+    modal.querySelector('#save-memory').addEventListener('click', function() {
+        saveMemoryData(modal);
+    });
+    
+    // Show modal with animation
+    setTimeout(() => {
+        modal.style.opacity = '1';
+        modal.style.transform = 'translateY(0)';
+        playSound('open');
+    }, 10);
+    
+    // Focus title input
+    setTimeout(() => {
+        const titleInput = modal.querySelector('#memory-title');
+        if (titleInput) titleInput.focus();
+    }, 300);
 }
 
-// Генерация случайной позиции
+// Convert hex color to RGB
+function hexToRgb(hex) {
+    // Remove # if present
+    hex = hex.replace('#', '');
+    
+    // Parse hex values
+    const r = parseInt(hex.substring(0, 2), 16) || 255;
+    const g = parseInt(hex.substring(2, 4), 16) || 215;
+    const b = parseInt(hex.substring(4, 6), 16) || 0;
+    
+    return `${r}, ${g}, ${b}`;
+}
+
+// Close modal with animation
+function closeModal(modal) {
+    if (!modal) return;
+    
+    modal.style.opacity = '0';
+    modal.style.transform = 'translateY(-10px)';
+    
+    setTimeout(() => {
+        modal.remove();
+    }, 300);
+}
+
+// Save memory data
+function saveMemoryData(modal) {
+    const titleInput = modal.querySelector('#memory-title');
+    const descInput = modal.querySelector('#memory-desc');
+    const typeInput = modal.querySelector('#memory-type');
+    
+    if (!titleInput || !descInput || !typeInput) {
+        console.error('Missing form elements in modal');
+        return;
+    }
+    
+    const title = titleInput.value.trim();
+    const description = descInput.value.trim();
+    const selectedEmotion = modal.querySelector('.emotion[style*="scale(1.05)"]');
+    const type = typeInput.value;
+    
+    if (!title) {
+        showNotification(modal, 'Please enter a title for your memory', 'error');
+        titleInput.focus();
+        return;
+    }
+    
+    const emotion = selectedEmotion ? selectedEmotion.getAttribute('data-value') : 'reflection';
+    
+    // Create memory
+    const memory = {
+        id: Date.now(),
+        title,
+        description,
+        emotion,
+        type,
+        timestamp: new Date().toISOString(),
+        position: generateRandomPosition(type)
+    };
+    
+    // Save memory
+    saveMemory(memory);
+    
+    // Show notification
+    showNotification(modal, 'Memory crystallized successfully!', 'success');
+    
+    // Play sound
+    playSound('success');
+    
+    // Close modal
+    setTimeout(() => {
+        closeModal(modal);
+    }, 1000);
+}
+
+// Show notification
+function showNotification(modal, message, type = 'success') {
+    // Create or find notification element
+    let notification = modal.querySelector('.memory-notification');
+    
+    if (!notification) {
+        notification = document.createElement('div');
+        notification.className = 'memory-notification';
+        
+        // Style notification
+        Object.assign(notification.style, {
+            position: 'absolute',
+            bottom: '15px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            backgroundColor: type === 'success' ? 'rgba(0, 128, 0, 0.2)' : 'rgba(255, 0, 0, 0.2)',
+            color: type === 'success' ? '#00FF00' : '#FF5555',
+            padding: '10px 20px',
+            borderRadius: '4px',
+            fontSize: '1.1rem',
+            textAlign: 'center',
+            opacity: '0',
+            transition: 'opacity 0.3s ease',
+            border: `1px solid ${type === 'success' ? '#00FF00' : '#FF5555'}`
+        });
+        
+        modal.appendChild(notification);
+    } else {
+        // Update existing notification
+        notification.style.backgroundColor = type === 'success' ? 'rgba(0, 128, 0, 0.2)' : 'rgba(255, 0, 0, 0.2)';
+        notification.style.color = type === 'success' ? '#00FF00' : '#FF5555';
+        notification.style.border = `1px solid ${type === 'success' ? '#00FF00' : '#FF5555'}`;
+    }
+    
+    // Set message
+    notification.textContent = message;
+    
+    // Show notification
+    setTimeout(() => {
+        notification.style.opacity = '1';
+    }, 10);
+    
+    // Hide after delay
+    setTimeout(() => {
+        notification.style.opacity = '0';
+    }, 3000);
+}
+
+// Generate random position
 function generateRandomPosition(type) {
     let x = type === 'past' ? Math.random() * 0.4 : 0.6 + Math.random() * 0.4;
     let y = Math.random() * 0.8 + 0.1;
@@ -683,35 +684,50 @@ function generateRandomPosition(type) {
     return { x, y, z };
 }
 
-// Сохранение воспоминания
+// Save memory
 function saveMemory(memory) {
-    memories = loadMemories();
+    console.log('Saving memory:', memory);
+    
+    // Load existing memories
+    let memories = loadMemories();
+    
+    // Add new memory
     memories.push(memory);
-    localStorage.setItem('timeMemories', JSON.stringify(memories));
     
-    if (isThreeAvailable) {
-        createConstellation();
-    } else {
-        updateSimpleMemoryList();
+    // Save to localStorage
+    try {
+        localStorage.setItem('timeMemories', JSON.stringify(memories));
+        console.log('Memory saved successfully');
+        
+        // Update visualization
+        if (isThreeAvailable) {
+            createConstellation();
+        } else {
+            updateSimpleMemoryList();
+        }
+        
+        return true;
+    } catch (error) {
+        console.error('Error saving memory:', error);
+        return false;
     }
-    
-    console.log('Memory Map: Memory saved', memory);
 }
 
-// Загрузка воспоминаний
+// Load memories
 function loadMemories() {
     try {
         const stored = localStorage.getItem('timeMemories');
         return stored ? JSON.parse(stored) : [];
     } catch (error) {
-        console.error('Memory Map: Error loading memories:', error);
+        console.error('Error loading memories:', error);
         return [];
     }
 }
 
-// Звуковые эффекты
+// Play sound
 function playSound(type) {
     try {
+        // Create audio context
         if (!audioContext) {
             try {
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -726,45 +742,94 @@ function playSound(type) {
         oscillator.connect(gain);
         gain.connect(audioContext.destination);
         
-        const config = {
-            'open': [300, 600, 0.2, 0.3],
-            'close': [600, 300, 0.2, 0.3],
-            'select': [440, 440, 0.1, 0.1],
-            'success': [440, 660, 0.2, 0.3]
-        }[type] || [440, 440, 0.1, 0.1];
-        
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(config[0], audioContext.currentTime);
-        if (type === 'success') {
-            oscillator.frequency.setValueAtTime(550, audioContext.currentTime + 0.1);
-            oscillator.frequency.setValueAtTime(config[1], audioContext.currentTime + 0.2);
-        } else {
-            oscillator.frequency.exponentialRampToValueAtTime(config[1], audioContext.currentTime + config[3]);
+        // Configure sound
+        switch (type) {
+            case 'open':
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.3);
+                break;
+                
+            case 'close':
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.3);
+                break;
+                
+            case 'select':
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
+                break;
+                
+            case 'success':
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(550, audioContext.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(660, audioContext.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.3);
+                break;
+                
+            case 'error':
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(330, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(220, audioContext.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.3);
+                break;
+                
+            default:
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
+                gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + 0.1);
         }
-        gain.gain.setValueAtTime(config[2], audioContext.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + config[3]);
-        oscillator.start();
-        oscillator.stop(audioContext.currentTime + config[3]);
     } catch (error) {
         console.warn('Error playing sound:', error);
     }
 }
 
-// Очистка воспоминаний
-function clearAllMemories() {
-    if (confirm('Are you sure you want to delete all memories?')) {
-        localStorage.removeItem('timeMemories');
-        memories = [];
-        if (isThreeAvailable) {
-            createConstellation();
-        } else {
-            updateSimpleMemoryList();
-        }
-        console.log('Memory Map: All memories cleared');
+// Animation loop
+function animate() {
+    if (!isThreeAvailable) return;
+    
+    requestAnimationFrame(animate);
+    
+    // Update time
+    time += 0.01;
+    
+    // Update uniforms
+    if (particles && particles.material.uniforms) {
+        particles.material.uniforms.time.value = time;
     }
+    
+    if (lines && lines.material.uniforms) {
+        lines.material.uniforms.time.value = time;
+    }
+    
+    // Render scene
+    renderer.render(scene, camera);
 }
 
-// Обработка изменения размера окна
+// Window resize handler
 function onWindowResize() {
     if (!isThreeAvailable) return;
     
@@ -774,28 +839,219 @@ function onWindowResize() {
     camera.aspect = container.clientWidth / container.clientHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(container.clientWidth, container.clientHeight);
-    console.log('Memory Map: Window resized');
 }
 
-// Обработка движения мыши
+// Mouse move handler
+// Mouse move handler
 function onMouseMove(event) {
-    if (!isThreeAvailable || !particles) return;
-    
-    const container = document.getElementById('memory-map');
-    if (!container) return;
-    
-    const rect = container.getBoundingClientRect();
-    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-    
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObject(particles);
-    
-    if (intersects.length > 0) {
-        const index = intersects[0].index;
-        const memory = memories[index];
-        showTooltip(memory, event.clientX, event.clientY);
-    } else {
-        hideTooltip();
-    }
+  if (!isThreeAvailable || !particles) return;
+  
+  const container = document.getElementById('memory-map');
+  if (!container) return;
+  
+  const rect = container.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObject(particles);
+  
+  if (intersects.length > 0) {
+      const index = intersects[0].index;
+      const memory = memories[index];
+      showTooltip(memory, event.clientX, event.clientY);
+  } else {
+      hideTooltip();
+  }
 }
+
+// Mouse click handler
+function onMouseClick(event) {
+  if (!isThreeAvailable || !particles) return;
+  
+  const container = document.getElementById('memory-map');
+  if (!container) return;
+  
+  const rect = container.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+  
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObject(particles);
+  
+  if (intersects.length > 0) {
+      const index = intersects[0].index;
+      const memory = memories[index];
+      displayMemoryDetails(memory);
+  }
+}
+
+// Show memory tooltip
+function showTooltip(memory, x, y) {
+  if (!memory) return;
+  
+  // Remove existing tooltip
+  hideTooltip();
+  
+  // Create tooltip
+  const tooltip = document.createElement('div');
+  tooltip.className = 'memory-tooltip';
+  tooltip.style.position = 'absolute';
+  tooltip.style.top = `${y + 20}px`;
+  tooltip.style.left = `${x + 10}px`;
+  tooltip.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+  tooltip.style.color = getEmotionColor(memory.emotion);
+  tooltip.style.padding = '10px';
+  tooltip.style.borderRadius = '4px';
+  tooltip.style.zIndex = '1000';
+  tooltip.style.pointerEvents = 'none';
+  tooltip.style.fontSize = '14px';
+  tooltip.style.maxWidth = '200px';
+  tooltip.style.border = `1px solid ${getEmotionColor(memory.emotion)}`;
+  tooltip.style.boxShadow = `0 0 10px rgba(${hexToRgb(getEmotionColor(memory.emotion))}, 0.3)`;
+  
+  // Tooltip content
+  tooltip.innerHTML = `
+      <div style="font-weight: bold; margin-bottom: 5px;">${memory.title}</div>
+      <div style="font-size: 12px; opacity: 0.8;">Type: ${memory.type}</div>
+      <div style="font-size: 12px; opacity: 0.8;">Emotion: ${memory.emotion}</div>
+  `;
+  
+  // Add to body
+  document.body.appendChild(tooltip);
+}
+
+// Hide memory tooltip
+function hideTooltip() {
+  const tooltip = document.querySelector('.memory-tooltip');
+  if (tooltip) {
+      tooltip.remove();
+  }
+}
+
+// Display memory details
+function displayMemoryDetails(memory) {
+  if (!memory) return;
+  
+  // Create modal
+  const modal = document.createElement('div');
+  modal.className = 'memory-modal premium-modal';
+  
+  // Set modal styles
+  Object.assign(modal.style, {
+      position: 'fixed',
+      width: '450px',
+      maxWidth: '90vw',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      zIndex: '9999',
+      padding: '25px',
+      opacity: '0',
+      transition: 'all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1)'
+  });
+  
+  // Format date
+  const formattedDate = new Date(memory.timestamp).toLocaleString();
+  
+  // Modal content
+  modal.innerHTML = `
+      <div class="memory-modal-content">
+          <h3 style="font-size: 2rem; color: ${getEmotionColor(memory.emotion)}; margin-top: 0; text-align: center; margin-bottom: 20px;">${memory.title}</h3>
+          
+          <div style="margin-bottom: 15px;">
+              <div style="font-size: 1.1rem; color: #FFD700; margin-bottom: 5px;">Type:</div>
+              <div style="background: rgba(20, 20, 20, 0.8); padding: 10px; border-radius: 6px; border: 1px solid ${getEmotionColor(memory.emotion)};">
+                  ${memory.type === 'past' ? '◄ Past Memory' : '► Future Projection'}
+              </div>
+          </div>
+          
+          <div style="margin-bottom: 15px;">
+              <div style="font-size: 1.1rem; color: #FFD700; margin-bottom: 5px;">Emotional Signature:</div>
+              <div style="background: rgba(20, 20, 20, 0.8); padding: 10px; border-radius: 6px; border: 1px solid ${getEmotionColor(memory.emotion)}; color: ${getEmotionColor(memory.emotion)};">
+                  ${memory.emotion}
+              </div>
+          </div>
+          
+          <div style="margin-bottom: 15px;">
+              <div style="font-size: 1.1rem; color: #FFD700; margin-bottom: 5px;">Timestamp:</div>
+              <div style="background: rgba(20, 20, 20, 0.8); padding: 10px; border-radius: 6px; border: 1px solid rgba(255, 215, 0, 0.3);">
+                  ${formattedDate}
+              </div>
+          </div>
+          
+          ${memory.description ? `
+          <div style="margin-bottom: 15px;">
+              <div style="font-size: 1.1rem; color: #FFD700; margin-bottom: 5px;">Description:</div>
+              <div style="background: rgba(20, 20, 20, 0.8); padding: 10px; border-radius: 6px; border: 1px solid rgba(255, 215, 0, 0.3); min-height: 100px;">
+                  ${memory.description}
+              </div>
+          </div>
+          ` : ''}
+          
+          <div class="modal-actions">
+              <button id="close-detail">Close</button>
+              <button id="delete-memory" style="background: rgba(255, 0, 0, 0.2); color: #FF5555; border: 1px solid #FF5555;">Delete</button>
+          </div>
+      </div>
+  `;
+  
+  // Add to body
+  document.body.appendChild(modal);
+  
+  // Button handlers
+  modal.querySelector('#close-detail').addEventListener('click', function() {
+      closeModal(modal);
+  });
+  
+  modal.querySelector('#delete-memory').addEventListener('click', function() {
+      if (confirm('Are you sure you want to delete this memory?')) {
+          deleteMemory(memory.id);
+          closeModal(modal);
+      }
+  });
+  
+  // Show modal
+  setTimeout(() => {
+      modal.style.opacity = '1';
+      modal.style.transform = 'translate(-50%, -50%) scale(1)';
+      playSound('open');
+  }, 10);
+}
+
+// Delete memory
+function deleteMemory(id) {
+  let memories = loadMemories();
+  memories = memories.filter(memory => memory.id !== id);
+  
+  try {
+      localStorage.setItem('timeMemories', JSON.stringify(memories));
+      
+      // Update visualization
+      if (isThreeAvailable) {
+          createConstellation();
+      } else {
+          updateSimpleMemoryList();
+      }
+      
+      playSound('close');
+  } catch (error) {
+      console.error('Error deleting memory:', error);
+  }
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', function() {
+  // Initialize memory map
+  initMemoryMap();
+});
+
+// Reinitialize when page shown
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden) {
+      // Page is visible again
+      if (isThreeAvailable && !animationRunning) {
+          animate();
+      }
+  }
+});
