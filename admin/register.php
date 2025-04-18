@@ -1,43 +1,49 @@
 <?php
-// Отладка
+// Указываем, что ответ будет в формате JSON
+header('Content-Type: application/json');
+
+// Отладка ошибок
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Сессия
+// Запускаем сессию
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// 🔌 Подключение к БД
+// Подключение к базе данных
 $host = "localhost";
 $dbname = "zapom263_quotes";
-$username = "zapom263_darlingx";  // Указан в cPanel
+$username = "zapom263_darlingx"; // из cPanel
 $password = "qwerty2412";
+
 $conn = new mysqli($host, $username, $password, $dbname);
 if ($conn->connect_error) {
-    die("Ошибка подключения к БД: " . $conn->connect_error);
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Ошибка подключения к БД']);
+    exit;
 }
 
-// 📩 Получаем email и пароль
+// Получаем данные из POST
 $email = $_POST['email'] ?? '';
 $password = $_POST['password'] ?? '';
 
-// ❗ Проверка на пустоту
+// Проверка на пустоту
 if (!$email || !$password) {
     http_response_code(400);
     echo json_encode(['status' => 'error', 'message' => 'Все поля обязательны']);
     exit;
 }
 
-// ✅ Проверка силы пароля
+// Проверка силы пароля
 if (strlen($password) < 6 || !preg_match('/[a-z]/i', $password) || !preg_match('/\d/', $password)) {
     http_response_code(400);
     echo json_encode(['status' => 'error', 'message' => 'Пароль должен содержать минимум 6 символов, включая буквы и цифры']);
     exit;
 }
 
-// ❌ Проверка: email уже зарегистрирован?
+// Проверка на повторную регистрацию
 $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
 $check->bind_param("s", $email);
 $check->execute();
@@ -49,17 +55,22 @@ if ($check->num_rows > 0) {
     exit;
 }
 
-// ✅ Хеширование и запись
+// Хешируем пароль
 $hash = password_hash($password, PASSWORD_DEFAULT);
+
+// Сохраняем пользователя
 $stmt = $conn->prepare("INSERT INTO users (email, password_hash) VALUES (?, ?)");
 $stmt->bind_param("ss", $email, $hash);
 
 if ($stmt->execute()) {
     $_SESSION['user_id'] = $stmt->insert_id;
-    header("Location: /quotes.html"); // 🔁 Перенаправление
-    exit;
+    echo json_encode([
+        'status' => 'success',
+        'message' => 'Регистрация успешна',
+        'redirect' => '/quotes.html'
+    ]);
 } else {
     http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'Ошибка сервера']);
+    echo json_encode(['status' => 'error', 'message' => 'Ошибка сервера при регистрации']);
 }
 ?>

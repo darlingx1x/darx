@@ -1,13 +1,10 @@
-/**
- * quotes-custom.js
- * Обновлённый функционал: загрузка и сохранение пользовательских цитат через PHP + MySQL
- */
-
 document.addEventListener('DOMContentLoaded', function () {
     const quotesContainer = document.querySelector('.quotes-container');
     const aboutSection = document.querySelector('.about');
 
     if (!quotesContainer || !aboutSection) return;
+
+    let currentUser = null;
 
     // 📦 Создаем форму
     const quoteForm = document.createElement('div');
@@ -30,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
     `;
     aboutSection.insertBefore(quoteForm, quotesContainer);
 
-    // 🔀 Переключатели между цитатами
+    // 🔀 Кнопки переключения
     const toggleBtn = document.createElement('div');
     toggleBtn.className = 'quotes-toggle';
     toggleBtn.innerHTML = `
@@ -42,14 +39,12 @@ document.addEventListener('DOMContentLoaded', function () {
         aboutSection.insertBefore(toggleBtn, quotesTitle.nextSibling);
     }
 
-    // 📦 Контейнер пользовательских цитат
     const customQuotesContainer = document.createElement('div');
     customQuotesContainer.className = 'custom-quotes-container';
     customQuotesContainer.innerHTML = '<h3 class="custom-quotes-title">Ваши цитаты</h3>';
     aboutSection.insertBefore(customQuotesContainer, quotesContainer);
     customQuotesContainer.style.display = 'none';
 
-    // 🔄 Переключение представлений
     document.querySelectorAll('.toggle-btn').forEach(button => {
         button.addEventListener('click', function () {
             const target = this.getAttribute('data-target');
@@ -58,24 +53,92 @@ document.addEventListener('DOMContentLoaded', function () {
             this.classList.add('active');
         });
     });
+    function closeModal() {
+        document.getElementById('authModal').classList.remove('active');
+    }
+    
+    function login() {
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPassword').value.trim();
+        const msg = document.getElementById('authMessage');
+    
+        fetch('/admin/login.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                msg.textContent = '✅ Logged in';
+                document.getElementById('authModal').classList.remove('active');
+                location.reload();
+            } else {
+                msg.textContent = data.message || '❌ Login failed';
+            }
+        })
+        .catch(err => {
+            msg.textContent = 'Server error: ' + err.message;
+        });
+    }
+    
+    function register() {
+        const email = document.getElementById('authEmail').value.trim();
+        const password = document.getElementById('authPassword').value.trim();
+        const msg = document.getElementById('authMessage');
+    
+        fetch('/admin/register.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                msg.textContent = '✅ Registered. Redirecting...';
+                setTimeout(() => {
+                    location.href = '/quotes.html';
+                }, 1000);
+            } else {
+                msg.textContent = data.message || '❌ Registration failed';
+            }
+        })
+        .catch(err => {
+            msg.textContent = 'Server error: ' + err.message;
+        });
+    }
+    
+    // 🔐 Проверка авторизации
+    fetch('/api/user.php')
+        .then(res => res.json())
+        .then(data => {
+            if (data.logged_in) {
+                currentUser = data.email;
+                showUserBar(currentUser);
+            }
+        });
 
-    // 💾 Обработка нажатия кнопки сохранения
+    // 🎯 При клике на "Сохранить"
     document.getElementById('saveQuote').addEventListener('click', function () {
-        fetch('/api/user.php')
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.logged_in) {
-                    saveQuote(); // если авторизован — сохраняем
-                } else {
-                    window.location.href = "/admin/log.html"; // иначе — логин
-                }
-            })
-            .catch(() => {
-                showNotification("Ошибка проверки пользователя", 'error');
-            });
+        if (!currentUser) {
+            document.getElementById('authModal').classList.add('active');
+            return;
+        }
+        saveQuote();
     });
+    
 
-    // 📥 Функция сохранения цитаты
+    function showUserBar(email) {
+        const bar = document.createElement('div');
+        bar.innerHTML = `👤 ${email} <a href="/api/logout.php" style="color:red;margin-left:10px;">[Выйти]</a>`;
+        bar.style.position = 'fixed';
+        bar.style.top = '10px';
+        bar.style.right = '20px';
+        bar.style.color = '#FFD700';
+        bar.style.fontFamily = 'VT323, monospace';
+        document.body.appendChild(bar);
+    }
+
     function saveQuote() {
         const quoteText = document.getElementById('quoteText').value.trim();
         const quoteAuthor = document.getElementById('quoteAuthor').value.trim() || 'Аноним';
@@ -106,7 +169,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // 🔄 Загрузка пользовательских цитат
     function loadCustomQuotes() {
         fetch('/api/get-quotes.php')
             .then(res => res.json())
@@ -137,7 +199,6 @@ document.addEventListener('DOMContentLoaded', function () {
             });
     }
 
-    // 👁️ Переключение
     function toggleQuotesView(target) {
         if (target === 'custom') {
             quotesContainer.style.display = 'none';
@@ -149,7 +210,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // 🔔 Уведомления
     function showNotification(message, type = 'success') {
         const notification = document.createElement('div');
         notification.className = `quote-notification ${type}`;
