@@ -11,7 +11,7 @@ RewriteRule ^ - [L]
 RewriteCond %{HTTP_HOST} ^(cpanel|webmail|webdisk|cpcontacts|cpcalendars)\.darlingx\.com$ [NC]
 RewriteRule ^(.*)$ /subdomain-landing.html [L]
 
-# 🌐 Редирект с www → основной домен
+# 🌐 Редирект www → основной домен
 RewriteCond %{HTTP_HOST} ^www\.darlingx\.com$ [NC]
 RewriteRule ^(.*)$ https://darlingx.com/$1 [L,R=301]
 
@@ -20,12 +20,15 @@ RewriteCond %{HTTPS} !=on
 RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
 # ─────────────────────────────
-# 📦 Статические пути
+# 📦 Чистые маршруты и страницы
 # ─────────────────────────────
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
 
-# SPA маршруты
+# Явное разрешение .html файлов, если они существуют
+RewriteCond %{REQUEST_URI} \.html$ [NC]
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# Clean URL → HTML (читаемые маршруты)
 RewriteRule ^books/?$ books.html [L]
 RewriteRule ^book-details/?$ book-details.html [L]
 RewriteRule ^posts/?$ posts.html [L]
@@ -37,20 +40,23 @@ RewriteRule ^quotes/?$ quotes.html [L]
 RewriteRule ^project-detail/?$ project-detail.html [L]
 RewriteRule ^my-time/?$ my-time.html [L]
 RewriteRule ^offline/?$ offline.html [L]
+RewriteRule ^register/?$ register.html [L]
 
-# Поддержка /admin/ без fallback
+# 🔐 Поддержка /admin/ без перехвата
 RewriteCond %{REQUEST_URI} ^/admin/
 RewriteRule ^ - [L]
 
-# Поддержка /api/ без fallback
+# 🔧 Поддержка /api/ без перехвата
 RewriteCond %{REQUEST_URI} ^/api/
 RewriteRule ^ - [L]
 
-# SPA fallback
-RewriteRule ^(.*)$ index.html [QSA,L]
+# 🌐 SPA fallback — если НЕ файл и НЕ директория
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [QSA,L]
 
 # ─────────────────────────────
-# 📎 Поддержка параметров в URL
+# 📎 Поддержка query параметров (?id=...)
 # ─────────────────────────────
 RewriteCond %{QUERY_STRING} ^id=([^&]+)$
 RewriteRule ^book-details\.html$ book-details.html [L]
@@ -98,7 +104,7 @@ AddType font/woff2 .woff2
 Options -Indexes
 
 # ─────────────────────────────
-# 💥 Кастомная 404
+# 💥 Кастомная страница 404
 # ─────────────────────────────
 ErrorDocument 404 /404.html
 
@@ -112,7 +118,7 @@ ErrorDocument 404 /404.html
 </IfModule>
 
 # ─────────────────────────────
-# 🔓 Доступ ко всем файлам
+# 🔓 Разрешение доступа ко всем файлам
 # ─────────────────────────────
 <FilesMatch ".*">
     Order Allow,Deny

@@ -59,8 +59,24 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // 💾 Сохранение цитаты
+    // 💾 Обработка нажатия кнопки сохранения
     document.getElementById('saveQuote').addEventListener('click', function () {
+        fetch('/api/user.php')
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.logged_in) {
+                    saveQuote(); // если авторизован — сохраняем
+                } else {
+                    window.location.href = "/admin/log.html"; // иначе — логин
+                }
+            })
+            .catch(() => {
+                showNotification("Ошибка проверки пользователя", 'error');
+            });
+    });
+
+    // 📥 Функция сохранения цитаты
+    function saveQuote() {
         const quoteText = document.getElementById('quoteText').value.trim();
         const quoteAuthor = document.getElementById('quoteAuthor').value.trim() || 'Аноним';
 
@@ -73,52 +89,52 @@ document.addEventListener('DOMContentLoaded', function () {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `text=${encodeURIComponent(quoteText)}&author=${encodeURIComponent(quoteAuthor)}`
         })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                showNotification('Цитата добавлена!');
-                document.getElementById('quoteText').value = '';
-                document.getElementById('quoteAuthor').value = '';
-                toggleQuotesView('custom');
-                loadCustomQuotes();
-            } else {
-                showNotification('Ошибка: ' + data.message, 'error');
-            }
-        })
-        .catch(err => {
-            showNotification('Ошибка сети: ' + err.message, 'error');
-        });
-    });
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotification('Цитата добавлена!');
+                    document.getElementById('quoteText').value = '';
+                    document.getElementById('quoteAuthor').value = '';
+                    toggleQuotesView('custom');
+                    loadCustomQuotes();
+                } else {
+                    showNotification('Ошибка: ' + data.message, 'error');
+                }
+            })
+            .catch(err => {
+                showNotification('Ошибка сети: ' + err.message, 'error');
+            });
+    }
 
     // 🔄 Загрузка пользовательских цитат
     function loadCustomQuotes() {
         fetch('/api/get-quotes.php')
-        .then(res => res.json())
-        .then(data => {
-            const container = document.querySelector('.custom-quotes-container');
-            container.innerHTML = '<h3 class="custom-quotes-title">Ваши цитаты</h3>';
+            .then(res => res.json())
+            .then(data => {
+                const container = document.querySelector('.custom-quotes-container');
+                container.innerHTML = '<h3 class="custom-quotes-title">Ваши цитаты</h3>';
 
-            if (!data.quotes || data.quotes.length === 0) {
-                const emptyMessage = document.createElement('p');
-                emptyMessage.className = 'empty-quotes-message';
-                emptyMessage.textContent = 'Нет цитат. Добавьте свою первую выше!';
-                container.appendChild(emptyMessage);
-                return;
-            }
+                if (!data.quotes || data.quotes.length === 0) {
+                    const emptyMessage = document.createElement('p');
+                    emptyMessage.className = 'empty-quotes-message';
+                    emptyMessage.textContent = 'Нет цитат. Добавьте свою первую выше!';
+                    container.appendChild(emptyMessage);
+                    return;
+                }
 
-            data.quotes.forEach(quote => {
-                const quoteItem = document.createElement('div');
-                quoteItem.className = 'quote-item custom-quote';
-                quoteItem.innerHTML = `
-                    <p class="quote-text">"${quote.text}"</p>
-                    <p class="quote-author">— ${quote.author}</p>
-                `;
-                container.appendChild(quoteItem);
+                data.quotes.forEach(quote => {
+                    const quoteItem = document.createElement('div');
+                    quoteItem.className = 'quote-item custom-quote';
+                    quoteItem.innerHTML = `
+                        <p class="quote-text">"${quote.text}"</p>
+                        <p class="quote-author">— ${quote.author}</p>
+                    `;
+                    container.appendChild(quoteItem);
+                });
+            })
+            .catch(err => {
+                showNotification('Ошибка загрузки цитат: ' + err.message, 'error');
             });
-        })
-        .catch(err => {
-            showNotification('Ошибка загрузки цитат: ' + err.message, 'error');
-        });
     }
 
     // 👁️ Переключение

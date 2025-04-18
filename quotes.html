@@ -155,18 +155,20 @@
           .then(data => {
             if (data && data.logged_in) {
               const userBar = document.createElement('div');
-              userBar.textContent = `👤 Logged in as: ${data.email}`;
+              userBar.innerHTML = `
+                👤 ${data.email} 
+                <a href="/api/logout.php" style="color: red; margin-left: 10px;">[Выйти]</a>
+              `;
               userBar.style.position = 'fixed';
               userBar.style.top = '10px';
               userBar.style.right = '20px';
               userBar.style.color = '#FFD700';
               userBar.style.fontFamily = 'VT323, monospace';
               document.body.appendChild(userBar);
-            } else {
-              window.location.href = '/admin/log.html';
             }
           });
-      </script>
+        </script>
+         
       
 </body>
 </html>
