@@ -11,142 +11,38 @@
   <link rel="icon" type="image/png" sizes="32x32" href="icon32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icon180.png">
   <title>My Time | Suleymanov Bobur</title>
-  
-  <!-- Подключение стилей -->
+
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/time.css">
-  
-  <!-- Подключение шрифта -->
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
-  
+
   <style>
     :root {
       --primary-color: #FFD700;
       --bg-color: #000;
       --text-color: #fff;
     }
-    
+
     #universe-container {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      z-index: -1;
+      z-index: -1; /* Изменено на -1, чтобы быть позади основного контента */
       opacity: 0.9;
     }
-    
+
     .container {
       position: relative;
       z-index: 10;
     }
-    
-    /* Стили для модального окна */
-    .memory-modal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 9999;
-      background: rgba(0, 0, 0, 0.9);
-      border: 1px solid var(--primary-color);
-      border-radius: 8px;
-      padding: 1rem;
-      transition: opacity 0.2s ease;
-      opacity: 0;
-      width: 80%;
-      max-width: 400px;
-    }
-    
-    .memory-modal.active {
-      opacity: 1;
-    }
-    
-    .memory-modal-content {
-      color: var(--text-color);
-    }
-    
-    .memory-modal-content h4 {
-      color: var(--primary-color);
-      margin-top: 0;
-      font-family: 'VT323', monospace;
-      text-align: center;
-    }
-    
-    .memory-modal-content input[type="text"],
-    .memory-modal-content textarea {
-      width: 100%;
-      padding: 0.5rem;
-      background: rgba(30, 30, 30, 0.9);
-      border: 1px solid var(--primary-color);
-      border-radius: 4px;
-      color: var(--primary-color);
-      font-family: 'VT323', monospace;
-      margin-bottom: 10px;
-    }
-    
-    .memory-modal-content textarea {
-      height: 100px;
-      resize: vertical;
-    }
-    
-    .emotion-selector {
-      margin: 0.5rem 0;
-    }
-    
-    .emotion-selector span {
-      display: block;
-      margin-bottom: 0.5rem;
-      color: var(--text-color);
-    }
-    
-    .emotion-scale {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-      margin-top: 5px;
-    }
-    
-    .emotion {
-      cursor: pointer;
-      padding: 0.2rem 0.5rem;
-      border: 1px solid var(--primary-color);
-      border-radius: 4px;
-      color: var(--text-color);
-      font-family: 'VT323', monospace;
-    }
-    
-    .emotion.selected {
-      background: var(--primary-color);
-      color: #000;
-    }
-    
-    .modal-actions {
-      display: flex;
-      gap: 0.5rem;
-      justify-content: flex-end;
-      margin-top: 1rem;
-    }
-    
-    .modal-actions button {
-      background: transparent;
-      border: 1px solid var(--primary-color);
-      color: var(--primary-color);
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      font-family: 'VT323', monospace;
-      font-size: 1rem;
-      transition: all 0.3s ease;
-    }
-    
-    .modal-actions button:hover {
-      background: rgba(255, 215, 0, 0.1);
-      transform: translateY(-2px);
-    }
-    
+
+    /* Mobile responsive styles */
+
     /* Mobile responsive styles */
     @media screen and (max-width: 768px) {
       .attribution {
@@ -161,14 +57,12 @@
   </style>
 </head>
 <body>
-  <!-- Фоновый контейнер для звезд -->
   <div id="universe-container"></div>
   <div class="custom-cursor"></div>
   <div class="cursor-dot"></div>
-  
+
   <main>
     <div class="container">
-      <!-- Навигация -->
       <nav class="navbar">
         <a href="index.html" class="nav-link">
           <span class="animate_letters">[darlingx.com]</span>
@@ -189,21 +83,18 @@
           <span class="animate_letters">[projects]</span>
         </a>
       </nav>
-      
-      <!-- Основной блок с визуализацией времени -->
+
       <div class="about">
         <h1 class="about-name">
           <span class="animate_letters">My Time</span>
         </h1>
-        
+
         <div class="time-container">
-          <!-- Заголовок страницы -->
           <div class="time-header">
             <h2 class="time-title matrix-effect">Lifetime Visualizer</h2>
             <p class="time-subtitle">Tracking the most valuable resource in the universe - your time.</p>
           </div>
-          
-          <!-- Статистика (карточки) -->
+
           <div class="stats-container">
             <div class="stat-card matrix-effect">
               <div class="stat-value" id="age-value">--</div>
@@ -221,9 +112,12 @@
               <div class="stat-value" id="hours-left-value">--</div>
               <div class="stat-label">Awake Hours Remaining</div>
             </div>
+            <div class="stat-card matrix-effect">
+              <div class="stat-value" id="true-free-time-value">--</div>
+              <div class="stat-label">True Free Time</div>
+            </div>
           </div>
-          
-          <!-- Визуализация прогресса жизни -->
+
           <div class="time-visualization">
             <h3>Life Progress</h3>
             <div class="progress-bar-container">
@@ -235,8 +129,7 @@
               <div class="progress-bar-label" id="later-progress-label">0%</div>
             </div>
           </div>
-          
-          <!-- Разбивка времени по категориям -->
+
           <div class="breakdown-card">
             <h3 class="breakdown-title">Time Allocation Breakdown</h3>
             <ul class="breakdown-list" id="breakdown-list">
@@ -262,35 +155,16 @@
               </li>
             </ul>
           </div>
-          
-          <!-- Статичная визуализация вместо анимированных звезд -->
+
           <div class="cosmic-journey">
             <h3 class="cosmic-title">Your Cosmic Journey</h3>
             <p class="cosmic-subtitle">Visualize your life journey through the cosmos</p>
-            <div class="static-stars-field" id="star-field">
-              <!-- Статичные звезды будут добавлены через JS -->
-            </div>
-            <p>Each star represents one month of your life. Golden stars show the months you've already lived.</p>
+            <div class="static-stars-field" id="star-field"></div>
+            <p>Each star represents one month of my life. Golden stars show the months I've already lived.</p>
           </div>
-          
-          <!-- Memory Constellation Section -->
-          <div class="memory-map-section">
-            <h3 class="memory-title">Memory Constellation</h3>
-            <p class="memory-subtitle">Map your key memories and future aspirations in spacetime</p>
-            
-            <div class="memory-container">
-              <canvas id="memory-map" width="800" height="400"></canvas>
-              <div class="memory-controls">
-                <button id="add-memory-btn" class="settings-btn">Capture Memory</button>
-                <button id="project-btn" class="settings-btn">Project Future</button>
-              </div>
-            </div>
-            <div id="memory-map-fallback" style="display: none;">
-              <p>Memory constellation requires Three.js to function. Using simplified version.</p>
-            </div>
-          </div>
-          
-          <!-- Настройки пользователя -->
+
+
+
           <div class="settings-toggle">
             <button class="settings-btn" id="settings-toggle-btn">Customize Settings</button>
             <div class="settings-panel" id="settings-panel">
@@ -322,107 +196,95 @@
                 <label for="necessities-hours">Basic Necessities Hours (per day):</label>
                 <input type="number" id="necessities-hours" min="0" max="24" step="0.5" value="2">
               </div>
+              <div class="form-group">
+                <label for="overhead-hours">Overhead Hours (per day):</label>
+                <input type="number" id="overhead-hours" min="0" max="24" step="0.5" value="1">
+              </div>
               <div class="form-actions">
                 <button class="settings-btn" id="reset-btn">Reset to Default</button>
                 <button class="settings-btn" id="apply-btn">Apply</button>
               </div>
             </div>
           </div>
-          
+
         </div>
       </div>
     </div>
   </main>
-  
-  <!-- JavaScript Libraries -->
-  <!-- Подключаем Three.js из CDN -->
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
-  
-  <!-- Подключение скриптов -->
+
   <script defer src="js/cursor.js"></script>
   <script defer src="js/time.js"></script>
-  <script defer src="js/memory-map.js"></script>
-  
-  <!-- Встроенный скрипт для прямой работы с кнопками -->
+
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('Direct handlers initializing...');
-
-      function setupDirectHandlers() {
-        const addMemoryBtn = document.getElementById('add-memory-btn');
-        const projectBtn = document.getElementById('project-btn');
-
-        if (addMemoryBtn) {
-          addMemoryBtn.onclick = function() {
-            console.log('Capture Memory button clicked');
-            showMemoryModal('past');
-          };
-          console.log('Handler set for Capture Memory button');
+    class StarryBackground {
+      constructor() {
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const container = document.getElementById('universe-container');
+        if (!container) {
+          console.error("Element with ID 'universe-container' not found.");
+          return;
         }
-
-        if (projectBtn) {
-          projectBtn.onclick = function() {
-            console.log('Project Future button clicked');
-            showMemoryModal('future');
-          };
-          console.log('Handler set for Project Future button');
-        }
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.setupRenderer();
+        this.createUniverseBackground();
+        this.setupEventListeners();
+        this.animate();
       }
 
-      function showMemoryModal(type) {
-        console.log('Showing memory modal for ' + type);
-
-        let existingModal = document.querySelector('.memory-modal');
-        if (existingModal) {
-          existingModal.remove();
+      setupRenderer() {
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        const container = document.getElementById('universe-container');
+        if (container) {
+          container.appendChild(this.renderer.domElement);
+          // Ensure the renderer's canvas is fixed in the viewport
+          this.renderer.domElement.style.position = 'fixed';
+          this.renderer.domElement.style.top = '0';
+          this.renderer.domElement.style.left = '0';
+          this.renderer.domElement.style.width = '100%';
+          this.renderer.domElement.style.height = '100%';
+          this.renderer.domElement.style.pointerEvents = 'none';
         }
-
-        const modal = document.createElement('div');
-        modal.className = 'memory-modal';
-        
-        const title = type === 'past' ? 'Capture Memory Fragment' : 'Project Future Aspiration';
-        modal.innerHTML = `
-          <div class="memory-modal-content">
-            <h4>${title}</h4>
-            <input type="text" id="memory-title" placeholder="Title" autocomplete="off">
-            <textarea id="memory-desc" placeholder="Description"></textarea>
-            <div class="emotion-selector">
-              <span>Emotional signature:</span>
-              <div class="emotion-scale">
-                <div class="emotion" data-value="1">😞</div>
-                <div class="emotion" data-value="2">😟</div>
-                <div class="emotion" data-value="3">😐</div>
-                <div class="emotion" data-value="4">🙂</div>
-                <div class="emotion" data-value="5">😊</div>
-              </div>
-            </div>
-            <div class="modal-actions">
-              <button id="cancel-memory">Cancel</button>
-              <button id="save-memory">Save</button>
-            </div>
-          </div>
-        `;
-        
-        document.body.appendChild(modal);
-
-        document.getElementById('cancel-memory').onclick = function() {
-          modal.remove();
-        };
-
-        document.getElementById('save-memory').onclick = function() {
-          console.log('Save button clicked');
-          // Здесь можно добавить обработку сохранения данных памяти
-          modal.remove();
-        };
-
-        // Пример плавного появления модального окна
-        setTimeout(() => {
-          modal.classList.add('active');
-        }, 10);
+        this.camera.position.z = 50;
       }
 
-      setupDirectHandlers();
+      createUniverseBackground() {
+        const starsGeometry = new THREE.BufferGeometry();
+        const starsMaterial = new THREE.PointsMaterial({ color: 0xFFFFFF, size: 0.5, opacity: 0.7 });
+        const starsVertices = [];
+        for (let i = 0; i < 5000; i++) {
+          starsVertices.push(
+            THREE.MathUtils.randFloatSpread(2000),
+            THREE.MathUtils.randFloatSpread(2000),
+            THREE.MathUtils.randFloatSpread(2000)
+          );
+        }
+        starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+        this.scene.add(new THREE.Points(starsGeometry, starsMaterial));
+      }
+
+      setupEventListeners() {
+        window.addEventListener('resize', this.onWindowResize.bind(this));
+      }
+
+      onWindowResize() {
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      animate() {
+        requestAnimationFrame(this.animate.bind(this));
+        if (this.renderer) this.renderer.render(this.scene, this.camera);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof THREE !== 'undefined') new StarryBackground();
+      else console.error("Three.js library is not loaded. Starry background cannot be initialized.");
     });
   </script>
 </body>

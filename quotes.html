@@ -131,6 +131,14 @@
                 </div>
             </div>
         </div>
+        <div id="auth-container">
+            <input type="text" id="auth-username" placeholder="Логин">
+            <input type="password" id="auth-password" placeholder="Пароль">
+            <button onclick="login()">Вход</button>
+            <button onclick="register()">Регистрация</button>
+            <p id="auth-message"></p>
+          </div>
+          
     </main>
 
     <script src="js/matrix-animation.js"></script>
@@ -140,5 +148,25 @@
     <script src="js/page-transition.js"></script>
     <script src="js/quotes-custom.js"></script>
     <script defer src="js/main.js"></script>
+
+    <script>
+        fetch('/api/user.php')
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.logged_in) {
+              const userBar = document.createElement('div');
+              userBar.textContent = `👤 Logged in as: ${data.email}`;
+              userBar.style.position = 'fixed';
+              userBar.style.top = '10px';
+              userBar.style.right = '20px';
+              userBar.style.color = '#FFD700';
+              userBar.style.fontFamily = 'VT323, monospace';
+              document.body.appendChild(userBar);
+            } else {
+              window.location.href = '/admin/log.html';
+            }
+          });
+      </script>
+      
 </body>
 </html>

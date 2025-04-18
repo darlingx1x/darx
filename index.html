@@ -3,18 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <meta name="description" content="AI, SE, Assistive Tech">
-  <meta name="keywords" content="Bobur, Suleymanov, Bobur Suleymanov, Suleymanov Bobur">
-  <meta name="author" content="SB">
+  <meta name="description" content="darlingx — suleymanov bobur">
+  <meta name="keywords" content="darlingx, cyber oracle, quotes, projects, philosophy, tech">
+  <meta name="author" content="Suleymanov Bobur">
 
-  <meta property="og:title" content="Home Page">
-  <meta property="og:description" content="AI, SE, Assistive Tech">
-  <meta property="og:url" content="https://www.darlingx.com">
+  <!-- 🔹 Open Graph (OG) Tags for social sharing -->
+  <meta property="og:title" content="darlingx — suleymanov bobur">
+  <meta property="og:description" content="Твой любимый">
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://www.darlingx.com/images/profile.jpg">
+  <meta property="og:url" content="https://darlingx.com">
+  <meta property="og:image" content="https://darlingx.com/icon180.png">
 
-  <meta name="robots" content="index, follow">
+  <!-- 🔹 Twitter Card Tags -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="darlingx — suleymanov bobur">
+  <meta name="twitter:description" content="Твой любимый">
+  <meta name="twitter:image" content="https://darlingx.com/icon180.png">
+
+  <!-- 🔹 PWA Manifest & Icons -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icon32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icon180.png">
+
+  <!-- 🔹 Theme Color -->
+  <meta name="theme-color" content="#000000">
   <link rel="canonical" href="https://www.darlingx.com">
   <link rel="icon" type="image/png" sizes="32x32" href="icon32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="icon180.png">
@@ -28,6 +40,15 @@
   <link rel="stylesheet" href="css/constellation.css">
   <link rel="stylesheet" href="css/books.css">
   <link rel="preload" href="js/matrix-animation.js" as="script">
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => console.log('✅ Service Worker registered:', reg.scope))
+        .catch(err => console.error('❌ SW registration failed:', err));
+    }
+  </script>
+  
+  
   
   <style>
     :root {
@@ -111,7 +132,7 @@
   
   <div id="profile-overlay">
     <h1>Suleymanov Bobur</h1>
-    <p>AI/Software Engineer | Explorer of Digital Realities</p>
+    <p>AI | Explorer of Digital Realities</p>
   </div>
   
 
@@ -122,7 +143,7 @@
   <main>
     <div class="container">
       <nav class="navbar">
-        <a href="index.html" class="nav-link">
+        <a href="index.html" class="nav-link active-link">
           <span class="animate_letters">[darlingx.com]</span>
         </a>
         <a href="cv.html" class="nav-link">
@@ -156,8 +177,8 @@
           <div class="about-text">
             <p>Hello everyone! Not an NPC!</p>
             <p>I am Suleymanov Bobur, originating from the lively city of Ferghana in Uzbekistan.</p>
-            <p>My passion for learning began with physics, mathematics, english, and computer science. I enjoy creating new and innovative things, bringing people together around a common goal, and helping others.</p>
-            <p>I'm genuinely passionate about artificial intelligence, programming, relationship psychology, and holistic personal and intellectual development.</p>
+            <p>A passion for learning first sparked through physics, mathematics, and computer science.</p>
+            <p>I’m driven to create the new, unite others around a shared purpose, and guide those seeking their path.</p>
             <p>On this website, you'll find information about what I do, what I'm reading, and my thoughts and ideas. If our interests align, feel free to reach out—I'm always open to connecting and expanding my network.</p>
           </div>
         </div>
@@ -183,8 +204,8 @@
       
       <p class="attribution">
         *design inspired by
-        <a href="https://cguti.xyz/" target="_blank" rel="noopener noreferrer" onclick="window.open(this.href, '_blank'); return false;">
-          <span class="animate_letters">carmen</span>
+        <a href="https://www.yulbarsov.uz/" target="_blank" rel="noopener noreferrer" onclick="window.open(this.href, '_blank'); return false;">
+          <span class="animate_letters">ky.org</span>
         </a>
       </p>
     </div>
@@ -216,7 +237,17 @@
 
       setupRenderer() {
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        document.getElementById('universe-container').appendChild(this.renderer.domElement);
+        const container = document.getElementById('universe-container');
+        if (container) {
+          container.appendChild(this.renderer.domElement);
+          // Ensure the renderer's canvas is fixed in the viewport
+          this.renderer.domElement.style.position = 'fixed';
+          this.renderer.domElement.style.top = '0';
+          this.renderer.domElement.style.left = '0';
+          this.renderer.domElement.style.width = '100%';
+          this.renderer.domElement.style.height = '100%';
+          this.renderer.domElement.style.pointerEvents = 'none';
+        }
         this.camera.position.z = 50;
       }
 
@@ -255,5 +286,20 @@
       new StarryBackground();
     });
   </script>
+  <!-- ✅ Service Worker Registration -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/js/service-worker.js')
+        .then(registration => {
+          console.log('✅ Service Worker registered with scope:', registration.scope);
+        })
+        .catch(error => {
+          console.error('❌ Service Worker registration failed:', error);
+        });
+    });
+  }
+</script>
+
 </body>
 </html>

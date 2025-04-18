@@ -44,7 +44,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add hover event listener
         element.addEventListener('mouseenter', function() {
             // Проверяем, не является ли элемент частью книжной карточки или поста
-            if (!element.closest('.book-card') && !element.closest('.post-content') && !element.closest('.article-content')) {
+            // Also check if element is part of experience or education sections
+            if (!element.closest('.book-card') && 
+                !element.closest('.post-content') && 
+                !element.closest('.article-content') && 
+                !element.closest('.cv-experience-item') && 
+                !element.closest('.cv-education-item') && 
+                !element.closest('.cv-experience-description') && 
+                !element.closest('.cv-education-description')) {
                 animateText(this);
             }
         });

@@ -1,4 +1,4 @@
-/* 
+/*
  * style.css
  * Comprehensive styles for premium website
  */
@@ -16,7 +16,7 @@
     --text-color-muted: rgba(255, 255, 255, 0.7);
     --accent-color: #E6C200;
     --hover-color: #FFC107;
-    
+
     /* UI Elements */
     --border-color: #1a1a1a;
     --border-active: rgba(255, 215, 0, 0.5);
@@ -25,7 +25,7 @@
     --shadow-light: 0 4px 20px rgba(0, 0, 0, 0.15);
     --link-hover-bg: rgba(255, 215, 0, 0.1);
     --card-bg: rgba(10, 10, 10, 0.6);
-    
+
     /* Typography */
     --font-main: 'VT323', monospace;
     --font-secondary: 'VT323', monospace;
@@ -40,7 +40,7 @@
     --line-height-tight: 1.1;
     --line-height-normal: 1.4;
     --line-height-loose: 1.6;
-    
+
     /* Spacing */
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -50,23 +50,23 @@
     --space-6: 2rem;
     --space-8: 3rem;
     --space-10: 4rem;
-    
+
     /* Border Radius */
     --radius-sm: 4px;
     --radius-md: 8px;
     --radius-lg: 16px;
     --radius-full: 9999px;
-    
+
     /* Transitions */
     --transition-fast: 0.2s ease;
     --transition-normal: 0.3s ease;
     --transition-slow: 0.5s ease;
-    
+
     /* Animation */
     --animation-speed-slow: 5s;
     --animation-speed-normal: 3s;
     --animation-speed-fast: 1s;
-    
+
     /* Z-indices */
     --z-background: -10;
     --z-normal: 1;
@@ -94,26 +94,22 @@ html {
 
 body {
     font-family: var(--font-main);
-    background-color: var(--bg-color);
+    background-color: var(--bg-color); /* Основной черный фон, который будет виден при скролле */
     color: var(--text-color);
     line-height: var(--line-height-normal);
     overflow-x: hidden;
     position: relative;
-    min-height: 100vh;
-    transform: scale(0.855);
-    transform-origin: center top;
+    min-height: 100vh; /* Гарантируем, что body как минимум высотой с вьюпорт */
     width: 100%;
-    max-width: calc(100% / 0.855);
-    margin-left: auto;
-    margin-right: auto;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     animation: fadeIn 0.8s ease-out;
-    background-image: 
+    /* Удаляем фоновые градиенты, чтобы был просто черный фон */
+    /* background-image:
         radial-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px),
         radial-gradient(rgba(0, 255, 0, 0.1) 1px, transparent 1px);
     background-size: 50px 50px;
-    background-position: 0 0, 25px 25px;
+    background-position: 0 0, 25px 25px; */
     cursor: default;
     transition: opacity 0.3s ease-out;
 }
@@ -131,7 +127,8 @@ body::-webkit-scrollbar-thumb {
     border-radius: var(--radius-full);
 }
 
-body::before {
+/* body::before больше не нужен, если фон body просто черный */
+/* body::before {
     content: "";
     position: fixed;
     top: 0;
@@ -141,7 +138,7 @@ body::before {
     background: linear-gradient(0deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0.9) 100%);
     pointer-events: none;
     z-index: var(--z-background);
-}
+} */
 
 h1, h2, h3, h4, h5, h6 {
     margin-bottom: var(--space-4);
@@ -170,7 +167,7 @@ img {
 
 /* ===== LAYOUT STYLES ===== */
 .container {
-    max-width: calc(1000px / 0.855);
+    max-width: 1170px;
     margin: 0 auto;
     padding: var(--space-8) var(--space-5);
     position: relative;
@@ -206,29 +203,42 @@ img {
 }
 
 .about-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-5);
-    align-items: flex-start;
+    /* display: flex; */ /* Убираем flex */
+    /* flex-direction: row; */ /* Убираем flex */
+    /* gap: var(--space-6); */ /* Убираем flex */
+    /* align-items: flex-start; */ /* Убираем flex */
+    margin-top: var(--space-6); /* Добавляем отступ сверху для контента */
+}
+
+.about-image {
+    width: 410px; /* Или другой подходящий размер */
+    max-width: 100%; /* Чтобы не вылезало на маленьких экранах */
+    height: auto;
+    display: left; /* Делаем блочным элементом */
+    margin: 0 auto var(--space-6) auto; /* Центрируем и добавляем отступ снизу */
+    /* flex-shrink: 0; */ /* Убираем flex */
+    transition: transform 0.3s ease;
 }
 
 .about-text {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    align-items: flex-start;
+    display: block; /* Текст теперь просто блок */
+    /* flex-grow: 1; */ /* Убираем flex */
+    /* display: flex; */ /* Убираем flex */
+    /* flex-direction: column; */ /* Убираем flex */
+    /* gap: var(--space-2); */ /* Убираем flex */
+    /* align-items: flex-start; */ /* Убираем flex */
 }
 
 .about-text p {
     text-align: left;
     max-width: 100%;
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-4); /* Увеличиваем отступ между параграфами */
     line-height: var(--line-height-loose);
     font-size: var(--font-size-lg);
     color: var(--primary-color); /* Желтый цвет */
     opacity: 0;
     animation: fadeIn 1s ease-out forwards;
-    animation-delay: 0.5s; /* Задержка после появления анимированных элементов */
+    animation-delay: 0.5s;
 }
 
 .about-text p:last-child {
@@ -248,7 +258,7 @@ img {
     display: flex;
     justify-content: flex-start;
     flex-wrap: wrap;
-    margin: 0.1rem 0;
+    margin: var(--space-6) 0 0.1rem 0; /* Добавляем отступ сверху */
     padding: 0.5rem;
     background: transparent;
     border-radius: var(--radius-md);
@@ -299,6 +309,13 @@ img {
     text-shadow: 0 0 8px var(--primary-color);
 }
 
+.navbar a.active-link span {
+    padding: 1px 4px;
+    background-color: var(--primary-color);
+    color: var(--bg-color);
+    border-radius: var(--radius-sm);
+}
+
 .navbar a::after {
     display: none;
 }
@@ -318,7 +335,7 @@ img {
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
     letter-spacing: 2px;
     white-space: nowrap;
-    min-width: 200px; /* Предотвращаем схлопывание при анимации */
+    min-width: 200px;
 }
 
 .about-email {
@@ -356,17 +373,10 @@ img {
 
 .about-location a .animate_letters {
     color: #B8860B !important; /* DarkGoldenrod */
-    text-shadow: 
+    text-shadow:
         0 0 8px rgba(184, 134, 11, 0.3),
         0 0 12px rgba(184, 134, 11, 0.2);
     font-weight: 500;
-}
-
-.about-image {
-    width: 410px;
-    height: auto;
-    margin-right: 2rem;
-    transition: transform 0.3s ease;
 }
 
 .about-image:hover {
@@ -446,14 +456,30 @@ img {
     display: none;
 }
 
-/* Matrix background */
+/* --- ФОН THREE.JS --- */
+/* Используем #universe-container из HTML */
+#universe-container {
+    position: fixed; /* Оставляем fixed */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%; /* Оставляем 100% высоты вьюпорта */
+    z-index: -1; /* Помещаем за основной контент */
+    pointer-events: none; /* Чтобы не мешал кликам */
+    overflow: hidden;
+    opacity: 0.9; /* Можно настроить прозрачность */
+}
+/* --- КОНЕЦ ФОН THREE.JS --- */
+
+
+/* Matrix background (если используется) */
 #matrix-bg {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: var(--z-background);
+    z-index: -3;
     pointer-events: none;
     overflow: hidden;
 }
@@ -462,10 +488,11 @@ img {
     position: absolute;
     top: 0;
     font-family: var(--font-main);
-    font-size: 16px;
+    font-size: 16px; /* Или 12px, как было */
     color: rgba(0, 255, 0, 0.7);
     opacity: 0.5;
     pointer-events: none;
+    z-index: -2;
 }
 
 .matrix-char {
@@ -474,177 +501,69 @@ img {
 }
 
 /* ===== ANIMATIONS ===== */
-/* Border flow animation */
+/* ... (остальные анимации без изменений) ... */
 @keyframes border-flow {
     0% { background-position: -300px 0; }
     100% { background-position: 300px 0; }
 }
-
-/* Matrix drop animation */
 @keyframes matrixDrop {
-    0% {
-        transform: translateY(-100%);
-    }
-    100% {
-        transform: translateY(100vh);
-    }
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
 }
-
-/* Character flicker animation */
 @keyframes matrixFlicker {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.8; }
 }
-
-/* Pulse animation for highlights */
 @keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-    50% {
-        opacity: 0.8;
-        transform: scale(1.05);
-    }
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
 }
-
-/* Glow animation */
 @keyframes glow {
-    0%, 100% {
-        box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
-    }
-    50% {
-        box-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
-    }
+    0%, 100% { box-shadow: 0 0 5px rgba(0, 255, 0, 0.5); }
+    50% { box-shadow: 0 0 20px rgba(0, 255, 0, 0.8); }
 }
-
-/* Glitch effect */
 @keyframes glitch {
-    0% {
-        transform: translate(0);
-    }
-    20% {
-        transform: translate(-2px, 2px);
-    }
-    40% {
-        transform: translate(-2px, -2px);
-    }
-    60% {
-        transform: translate(2px, 2px);
-    }
-    80% {
-        transform: translate(2px, -2px);
-    }
-    100% {
-        transform: translate(0);
-    }
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
 }
-
-/* Glitch effect class */
-.glitch-effect {
-    animation: glitch 0.2s forwards;
-}
-
-.glitch-effect .scanline {
-    opacity: 0.9;
-    height: 10px;
-    background: rgba(255, 215, 0, 0.3);
-}
-
-.glitch-effect img, 
-.glitch-effect .animate_letters {
-    animation: glitch 0.1s infinite;
-}
-
-/* Typing cursor animation */
+.glitch-effect { animation: glitch 0.2s forwards; }
+.glitch-effect .scanline { opacity: 0.9; height: 10px; background: rgba(255, 215, 0, 0.3); }
+.glitch-effect img, .glitch-effect .animate_letters { animation: glitch 0.1s infinite; }
 @keyframes typing-cursor {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0;
-    }
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
 }
-
-/* Fade in animation */
 @keyframes fadeIn {
-    0% {
-        opacity: 0;
-    }
-    100% {
-        opacity: 1;
-    }
+    0% { opacity: 0; }
+    100% { opacity: 1; }
 }
-
-/* Fade out animation */
 @keyframes fadeOut {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(-10px); }
 }
-
-/* Slide in from left */
 @keyframes slideInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
 }
-
-/* Slide in from right */
 @keyframes slideInRight {
-    from {
-        opacity: 0;
-        transform: translateX(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
+    from { opacity: 0; transform: translateX(20px); }
+    to { opacity: 1; transform: translateX(0); }
 }
-
-/* Float animation */
 @keyframes float {
-    0%, 100% {
-        transform: translateY(0);
-    }
-    50% {
-        transform: translateY(-10px);
-    }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
-
-/* Обновляем анимации */
 @keyframes slideInDecrypt {
-    0% {
-        transform: translateX(-10px);
-        opacity: 0;
-        clip-path: inset(0 100% 0 0);
-    }
-    100% {
-        transform: translateX(0);
-        opacity: 1;
-        clip-path: inset(0 0 0 0);
-    }
+    0% { transform: translateX(-10px); opacity: 0; clip-path: inset(0 100% 0 0); }
+    100% { transform: translateX(0); opacity: 1; clip-path: inset(0 0 0 0); }
 }
-
 @keyframes slideInImage {
-    0% {
-        transform: translateX(-20px);
-        opacity: 0;
-    }
-    100% {
-        transform: translateX(0);
-        opacity: 1;
-    }
+    0% { transform: translateX(-20px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
 }
 
 /* Убираем анимацию для навигационной панели */
@@ -684,25 +603,26 @@ img {
 /* ===== RESPONSIVE STYLES ===== */
 @media (max-width: 768px) {
     body {
-        transform: scale(0.98);
         width: 100%;
-        max-width: calc(100% / 0.98);
+        max-width: 100%;
         margin-left: auto;
         margin-right: auto;
     }
-    
+
     .container {
         max-width: 100%;
         padding: var(--space-4) var(--space-3);
     }
-    
+
+    /* Убедимся, что фоновые контейнеры не масштабируются */
     .constellation-container,
+    #universe-container, /* Добавлено */
     #matrix-bg,
     .custom-cursor,
     .cursor-dot {
-        transform: scale(0.98);
-        width: calc(100% / 0.98);
-        left: calc((100% - 100% / 0.98) / 2);
+        transform: none;
+        width: 100%;
+        left: 0;
     }
 
     .about {
@@ -710,12 +630,14 @@ img {
     }
 
     .about-content {
-        grid-template-columns: 1fr;
+        /* Уже блочный, но можно добавить отступ сверху */
+         margin-top: var(--space-4);
     }
 
     .about-image {
         width: 100%;
         max-width: 300px;
+        margin-bottom: var(--space-4); /* Уменьшаем отступ на мобильных */
     }
 
     .navbar {
@@ -726,16 +648,17 @@ img {
         margin: 0.25rem;
         font-size: 0.95rem;
     }
-    
+
     .about-name {
         font-size: var(--font-size-3xl);
     }
-    
+
     .socials {
         justify-content: center;
         padding: var(--space-3);
+        margin-top: var(--space-4); /* Уменьшаем отступ */
     }
-    
+
     .socials a {
         margin: 0.25rem;
         font-size: 0.95rem;
@@ -750,42 +673,21 @@ img {
 
 /* Mobile portrait */
 @media (max-width: 480px) {
-    body {
-        transform: scale(1);
-        width: 100%;
-        max-width: 100%;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    
-    .container {
-        max-width: 100%;
-        margin: 0 auto;
-    }
-    
-    .constellation-container,
-    #matrix-bg,
-    .custom-cursor,
-    .cursor-dot {
-        transform: none;
-        width: 100%;
-        left: 0;
-    }
-    
+    /* Стили body, container, фонов уже настроены выше */
     :root {
         --font-size-base: 14px;
     }
-    
+
     .navbar a {
         padding: var(--space-2) var(--space-3);
         margin-right: var(--space-2);
         font-size: var(--font-size-md);
     }
-    
+
     .about-name {
         font-size: var(--font-size-2xl);
     }
-    
+
     .about-text p {
         font-size: var(--font-size-md);
     }
@@ -841,7 +743,7 @@ html.custom-cursor-enabled [role="button"] {
 .is-scrolling .matrix-line {
     animation-play-state: paused;
 }
-/* 
+/*
  * Add these optimizations to your existing style.css
  * to ensure proper integration with constellation animation
  */
@@ -853,7 +755,7 @@ html.custom-cursor-enabled [role="button"] {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -3; /* Slightly higher than constellation background (-5) */
+    z-index: -3;
     pointer-events: none;
     overflow: hidden;
 }
@@ -866,12 +768,12 @@ html.custom-cursor-enabled [role="button"] {
     color: rgba(0, 255, 0, 0.7);
     opacity: 0.5;
     pointer-events: none;
-    z-index: -2; /* Above matrix bg but below content */
+    z-index: -2;
 }
 
 /* Optimization for when scrolling - expand existing rule */
 .is-scrolling .matrix-line,
-.is-scrolling .star, 
+.is-scrolling .star,
 .is-scrolling .constellation-line {
     animation-play-state: paused !important;
     transition: none !important;
@@ -880,40 +782,31 @@ html.custom-cursor-enabled [role="button"] {
 /* For low-powered devices */
 @media (max-width: 600px), (prefers-reduced-motion: reduce) {
     #matrix-bg {
-        opacity: 0.7; /* Reduce matrix intensity */
+        opacity: 0.7;
     }
-    
+
     .matrix-line {
-        font-size: 10px; /* Smaller text */
+        font-size: 10px;
     }
 }
 
 /* Refine touch devices interaction */
 @media (hover: none) and (pointer: coarse) {
+    /* .constellation-container CSS-анимации */
     .constellation-container {
-        display: block !important; /* Force display on touch devices */
+        display: block !important;
     }
-    
-    .star.size-small {
-        width: 3px !important; /* Larger stars for touch */
-        height: 3px !important;
-    }
-    
-    .star.size-medium {
-        width: 4px !important;
-        height: 4px !important;
-    }
-    
-    .star.size-large {
-        width: 5px !important;
-        height: 5px !important;
-    }
+    .star.size-small { width: 3px !important; height: 3px !important; }
+    .star.size-medium { width: 4px !important; height: 4px !important; }
+    .star.size-large { width: 5px !important; height: 5px !important; }
+
+    /* #universe-container Three.js фона это не касается */
 }
 
 /* Удаляем стили для скобок */
 .about-name .animate_letters::before,
 .about-name .animate_letters::after {
-    display: none; /* или можно полностью удалить эти правила */
+    display: none;
 }
 
 /* Обновляем стили для имени без скобок */
@@ -924,7 +817,7 @@ html.custom-cursor-enabled [role="button"] {
     color: var(--primary-color);
     position: relative;
     display: inline-block;
-    padding: 0; /* Убираем padding, который был нужен для скобок */
+    padding: 0;
     cursor: pointer;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
@@ -947,34 +840,27 @@ html.custom-cursor-enabled [role="button"] {
 
 /* Обновляем переменные шрифтов */
 :root {
-    /* Обновляем основной шрифт на Monocraft */
     --font-main: 'VT323', monospace;
-    
-    /* Остальные переменные остаются без изменений... */
 }
 
 /* Обновляем базовые стили для использования Monocraft */
 body {
     font-family: var(--font-main);
-    /* ... остальные стили body ... */
 }
 
 /* Обновляем стили для матричной анимации */
 .matrix-line {
     font-family: var(--font-main);
-    /* ... остальные стили ... */
 }
 
 /* Обновляем стили для анимированных букв */
 .animate_letters {
     font-family: var(--font-main);
-    /* ... остальные стили ... */
 }
 
 /* Обновляем стили навигации */
 .nav-link {
     font-family: var(--font-main);
-    /* ... остальные стили ... */
 }
 
 /* Обновляем стили для имени */
@@ -985,7 +871,7 @@ body {
     color: var(--primary-color);
     position: relative;
     display: inline-block;
-    padding: 0; /* Убираем padding, который был нужен для скобок */
+    padding: 0;
     cursor: pointer;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
@@ -1067,7 +953,7 @@ body {
 .about-location a:hover .animate_letters.location-text,
 .about-location a .animate_letters.location-text {
     color: #B8860B !important;
-    text-shadow: 
+    text-shadow:
         0 0 8px rgba(184, 134, 11, 0.3),
         0 0 12px rgba(184, 134, 11, 0.2) !important;
     font-weight: 500 !important;
@@ -1077,7 +963,7 @@ body {
 /* Используем GPU-ускорение для анимаций */
 .animate_letters,
 .matrix-line,
-.star {
+.star { /* Это для CSS анимации звезд */
     transform: translateZ(0);
     will-change: transform;
 }
@@ -1087,11 +973,11 @@ body {
     .about-name .animate_letters {
         font-size: var(--font-size-3xl);
     }
-    
+
     .about-image {
         width: 250px;
     }
-    
+
     /* Другие мобильные стили */
 }
 
